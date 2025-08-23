@@ -91,7 +91,7 @@ export default function UpdatesPage() {
 
                 <div className="bg-emerald-100 rounded-full p-4">
                   <p className="text-emerald-700 text-sm">
-                    <strong>Release Date:</strong> 06/08/2025
+                    <strong>Release Date:</strong> 23/08/2025
                   </p>
                 </div>
               </div>
