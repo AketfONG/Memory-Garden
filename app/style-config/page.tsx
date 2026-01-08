@@ -135,6 +135,66 @@ export default function StyleConfigPage() {
         createdAt: new Date().toISOString()
       },
       {
+        id: 'default-video-player',
+        name: 'Style VIDEO - Video Player Interface',
+        category: 'interfaces',
+        code: `<div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-3xl p-8 shadow-lg border border-emerald-100">
+  <div className="aspect-video bg-gradient-to-br from-emerald-100 to-green-200 rounded-2xl flex items-center justify-center relative overflow-hidden">
+    {/* Video Placeholder */}
+    <div className="text-center">
+      <div className="text-6xl mb-4">🎬</div>
+      <p className="text-lg font-semibold text-gray-700 mb-2">Memory Video Generated</p>
+      <p className="text-gray-600">A beautiful visualization of your memory</p>
+    </div>
+    
+    {/* Video Progress Bar */}
+    <div className="absolute bottom-0 left-0 right-0 h-2 bg-emerald-200">
+      <div className="h-full bg-emerald-500 rounded-r-full" style={{ width: '45%' }}></div>
+    </div>
+  </div>
+
+  {/* Video Controls */}
+  <div className="mt-6 flex items-center justify-between">
+    <div className="flex items-center space-x-4">
+      <button className="bg-gradient-to-b from-emerald-500 to-green-600 text-white px-6 py-3 rounded-full shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 flex items-center space-x-2 font-medium">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="4,3 17,10 4,17" fill="white"/>
+        </svg>
+        <span>Play</span>
+      </button>
+      <div className="text-sm text-gray-600">2:15 / 5:00</div>
+    </div>
+    <div className="flex items-center space-x-2">
+      <span className="mr-3 text-gray-500 text-sm w-8 text-right">75</span>
+      <div className="flex items-center w-32 h-10 select-none">
+        <div className="relative w-full h-2 bg-emerald-100 rounded-full cursor-pointer">
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 h-2 bg-emerald-400 rounded-full transition-all duration-200" style={{ width: '75%' }}></div>
+          <div className="absolute top-1/2 -translate-y-1/2 transition-all duration-200" style={{ left: 'calc(75% - 12px)' }}>
+            <div className="w-6 h-6 bg-gradient-to-b from-emerald-500 to-green-600 rounded-full shadow-lg border-4 border-white transition-all duration-200 hover:shadow-xl hover:scale-105 cursor-pointer"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  {/* Function Keys */}
+  <div className="mt-6 flex justify-start flex-wrap gap-4">
+    <button className="w-fit cursor-pointer border-2 border-emerald-200 text-emerald-600 hover:bg-emerald-100 px-6 py-3 rounded-full transition-all duration-300 hover:border-emerald-300 hover:scale-105 font-medium flex-shrink-0 whitespace-nowrap">
+      📥 Download Video
+    </button>
+    <button className="w-fit cursor-pointer border-2 border-emerald-200 text-emerald-600 hover:bg-emerald-100 px-6 py-3 rounded-full transition-all duration-300 hover:border-emerald-300 hover:scale-105 font-medium flex-shrink-0 whitespace-nowrap">
+      🔄 Regenerate
+    </button>
+    <button className="w-fit cursor-pointer border-2 border-emerald-200 text-emerald-600 hover:bg-emerald-100 px-6 py-3 rounded-full transition-all duration-300 hover:border-emerald-300 hover:scale-105 font-medium flex-shrink-0 whitespace-nowrap">
+      📤 Share
+    </button>
+  </div>
+</div>`,
+        description: 'Complete video player interface used on the memory page. Features video placeholder, progress bar, play/pause controls, volume slider, and action buttons with emerald theme.',
+        tags: ['video', 'player', 'controls', 'slider', 'interface', 'emerald', 'style-video'],
+        createdAt: new Date().toISOString()
+      },
+      {
         id: 'default-chat-interface',
         name: 'Style CHAT - Chat Interface',
         category: 'interfaces',

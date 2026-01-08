@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from "react";
 import Navigation from "../components/Navigation";
 import Link from "next/link";
-import { memoryStorage, type SavedMemory } from "../utils/memoryStorage";
+import { stackStorage, type MemoryStack as StackData } from "../utils/stackStorage";
+import { PRESET_STACKS } from "../utils/presetStacks";
 
 interface MemoryStack {
   id: string;
@@ -19,12 +20,15 @@ export default function MemoryStacks() {
   const [memoryStacks, setMemoryStacks] = useState<MemoryStack[]>([]);
 
   useEffect(() => {
-    try {
-      const memories: SavedMemory[] = memoryStorage.getAllMemories();
+    // Initialize preset stacks if no stacks exist
+    stackStorage.initializePresets(PRESET_STACKS);
 
-      const stacks: MemoryStack[] = memories.map((memory) => {
+    try {
+      const stacks: StackData[] = stackStorage.getAllStacks();
+
+      const displayStacks: MemoryStack[] = stacks.map((stack) => {
         // Choose an emoji preview based on category, falling back to a generic icon
-        const category = memory.categories?.[0] || memory.customCategory || "";
+        const category = stack.categories?.[0] || stack.customCategory || "";
         let preview = "🖼️";
         if (category === "family") preview = "👨‍👩‍👧‍👦";
         else if (category === "friends") preview = "👥";
@@ -32,26 +36,26 @@ export default function MemoryStacks() {
         else if (category === "achievement" || category === "work") preview = "🏆";
         else if (category === "love") preview = "💕";
 
-        const mediaCount = memory.mediaFiles?.length || 0;
+        const mediaCount = stack.mediaFiles?.length || 0;
 
         const dateLabel =
-          memory.vagueTime ||
-          memory.startDate ||
-          (memory.timestamp ? new Date(memory.timestamp).toLocaleDateString() : "");
+          stack.vagueTime ||
+          stack.startDate ||
+          (stack.timestamp ? new Date(stack.timestamp).toLocaleDateString() : "");
 
         return {
-          id: memory.id,
-          title: memory.title || "Untitled Memory",
+          id: stack.id,
+          title: stack.title || "Untitled Stack",
           count: mediaCount,
           date: dateLabel || "No date set",
           preview,
-          summary: memory.description || "",
+          summary: stack.description || "",
         };
       });
 
-      setMemoryStacks(stacks);
+      setMemoryStacks(displayStacks);
     } catch (error) {
-      console.error("Failed to load memories for stacks:", error);
+      console.error("Failed to load stacks:", error);
       setMemoryStacks([]);
     }
   }, []);
@@ -78,14 +82,14 @@ export default function MemoryStacks() {
 
   const handleDeleteStack = (stackId: string) => {
     const confirmed = window.confirm(
-      "Are you sure you want to remove this memory stack? This will delete the underlying memory."
+      "Are you sure you want to remove this memory stack?"
     );
     if (!confirmed) return;
 
     try {
-      memoryStorage.deleteMemory(stackId);
+      stackStorage.deleteStack(stackId);
     } catch (error) {
-      console.error("Failed to delete memory from storage:", error);
+      console.error("Failed to delete stack from storage:", error);
     }
 
     setMemoryStacks((prev) => prev.filter((stack) => stack.id !== stackId));
@@ -188,24 +192,42 @@ export default function MemoryStacks() {
               {/* Right Column - Actions */}
               <div className="flex flex-col h-full min-h-0">
                 {/* Choose Stack Option */}
-                <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-3xl p-10 mb-6 border border-emerald-100">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">Choose a Stack</h3>
-                  <p className="text-gray-600 text-base leading-relaxed mb-6">
+                <div
+                  className={`rounded-3xl p-10 mb-6 border transition-all duration-300 ${
+                    selectedStack
+                      ? "bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-100"
+                      : "bg-gray-100 border-gray-200"
+                  }`}
+                >
+                  <h3
+                    className={`text-2xl font-bold mb-4 ${
+                      selectedStack ? "text-gray-900" : "text-gray-400"
+                    }`}
+                  >
+                    Choose a Stack
+                  </h3>
+                  <p
+                    className={`text-base leading-relaxed mb-6 ${
+                      selectedStack ? "text-gray-600" : "text-gray-400"
+                    }`}
+                  >
                     Select a memory stack from the left, and AI will ask you questions about it to
                     help you explore and expand those memories.
                   </p>
-                  {selectedStack && (
+                  {selectedStack ? (
                     <button
                       onClick={handleStartConversation}
                       className="w-full bg-gradient-to-b from-emerald-500 to-green-600 text-white px-8 py-4 rounded-full text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
                     >
                       Start Conversation About This Stack
                     </button>
-                  )}
-                  {!selectedStack && (
-                    <p className="text-sm text-gray-500 italic">
-                      Select a stack from the left to begin
-                    </p>
+                  ) : (
+                    <button
+                      disabled
+                      className="w-full bg-gray-300 text-gray-500 px-8 py-4 rounded-full text-lg font-semibold transition-all duration-300 cursor-not-allowed"
+                    >
+                      Start Conversation About This Stack
+                    </button>
                   )}
                 </div>
 

@@ -38,6 +38,27 @@ class MemoryStorage {
     try {
       const existingMemories = this.getAllMemories();
       
+      // Check for duplicate memories based on title and description
+      const isDuplicate = existingMemories.some(existing => {
+        const titleMatch = existing.title === (memoryData.title || 'Untitled Memory');
+        const descriptionMatch = existing.description === (memoryData.description || '');
+        const timeMatch = Math.abs(new Date(existing.timestamp).getTime() - new Date(memoryData.timestamp || new Date()).getTime()) < 5000; // Within 5 seconds
+        
+        return titleMatch && descriptionMatch && timeMatch;
+      });
+      
+      if (isDuplicate) {
+        console.log('Duplicate memory detected, skipping save');
+        // Return the ID of the existing memory instead of creating a new one
+        const duplicateMemory = existingMemories.find(existing => {
+          const titleMatch = existing.title === (memoryData.title || 'Untitled Memory');
+          const descriptionMatch = existing.description === (memoryData.description || '');
+          const timeMatch = Math.abs(new Date(existing.timestamp).getTime() - new Date(memoryData.timestamp || new Date()).getTime()) < 5000;
+          return titleMatch && descriptionMatch && timeMatch;
+        });
+        return duplicateMemory?.id || '';
+      }
+      
       // Create unique ID
       const id = `memory_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       

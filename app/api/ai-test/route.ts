@@ -23,7 +23,10 @@ export async function POST(request: NextRequest) {
     console.log('Script directory:', scriptDir);
     console.log('Current working directory:', process.cwd());
     
-    const pythonProcess = spawn('/Library/Frameworks/Python.framework/Versions/3.11/bin/python3', [pythonScript, testTitle, testDescription], {
+    // Use cross-platform Python detection
+    const pythonCommand = process.platform === 'win32' ? 'python' : 'python3';
+    
+    const pythonProcess = spawn(pythonCommand, [pythonScript, testTitle, testDescription], {
       env: {
         ...process.env,
         PYTHONPATH: scriptDir,

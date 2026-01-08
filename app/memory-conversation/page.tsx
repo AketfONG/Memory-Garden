@@ -4,6 +4,7 @@ import Navigation from "../components/Navigation";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { memoryStorage, type SavedMemory, type MemoryMessage } from "../utils/memoryStorage";
+import { stackStorage, type MemoryStack as StackData } from "../utils/stackStorage";
 
 // Type definitions for Speech Recognition
 interface SpeechRecognition extends EventTarget {
@@ -50,7 +51,7 @@ export default function MemoryConversation() {
   const [isSaving, setIsSaving] = useState(false);
   const [textInput, setTextInput] = useState("");
   const [isProcessingText, setIsProcessingText] = useState(false);
-  const [selectedMemoryStack, setSelectedMemoryStack] = useState<SavedMemory | null>(null);
+  const [selectedMemoryStack, setSelectedMemoryStack] = useState<StackData | null>(null);
 
   // Get page title based on type
   const getPageTitle = () => {
@@ -68,8 +69,8 @@ export default function MemoryConversation() {
   useEffect(() => {
     if (stackId && (type === "stack" || type === "random")) {
       try {
-        const memory = memoryStorage.getMemory(stackId);
-        setSelectedMemoryStack(memory);
+        const stack = stackStorage.getStack(stackId);
+        setSelectedMemoryStack(stack);
       } catch (e) {
         console.error("Failed to load memory stack:", e);
         setSelectedMemoryStack(null);
@@ -460,6 +461,17 @@ Respond naturally and warmly to continue the conversation. Keep responses short 
 
   const handleSaveMemory = async () => {
     if (isSaving) return;
+    
+    // Check if there's any conversation content before saving
+    const hasContent = conversationHistory.length > 0 || (transcript && transcript.trim().length > 0);
+    if (!hasContent) {
+      // Redirect to memory garden without saving
+      if (typeof window !== "undefined") {
+        window.location.href = "/memory-garden";
+      }
+      return;
+    }
+    
     setIsSaving(true);
 
     try {

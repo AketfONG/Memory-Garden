@@ -2,6 +2,7 @@
 import React from "react";
 import Navigation from "./components/Navigation";
 import Link from "next/link";
+import { PRESET_STACKS } from "./utils/presetStacks";
 
 export default function Home() {
   return (
@@ -14,10 +15,10 @@ export default function Home() {
         <div className="container mx-auto px-6 py-16">
           {/* Hero */}
           <div className="max-w-7xl mx-auto mb-20">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="grid lg:grid-cols-[3fr_2fr] gap-12 items-center">
               <div className="text-center lg:text-left">
                 <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6 leading-tight">
-                  Everyone has a story worth sharing
+                  Let your cherished memories blossom
                 </h1>
                 <p className="text-xl md:text-2xl text-gray-600 mb-8 leading-relaxed">
                   Learn more about the people you love most, and preserve their stories and memories for generations.
@@ -38,6 +39,133 @@ export default function Home() {
                   <p className="text-gray-600">Trusted by families across Hong Kong</p>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Sample Memory Cards */}
+          <div className="w-full mb-20 py-12 -mx-6 px-6">
+            <div className="w-full">
+              <div className="marquee relative overflow-hidden">
+                <div
+                  className="pointer-events-none absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-white via-white to-transparent z-10"
+                  aria-hidden="true"
+                />
+                <div
+                  className="pointer-events-none absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-white via-white to-transparent z-10"
+                  aria-hidden="true"
+                />
+
+                <div className="py-4">
+                <div className="flex flex-col gap-6">
+                  {/* Row 1 - Memory Cards */}
+                  {(() => {
+                    const getDemoImages = (title: string): string[] => {
+                      const imageMap: { [key: string]: string[] } = {
+                        "Summer Beach Day": [
+                          "/Summer Beach Day 1.jpg.webp",
+                          "/Summer Beach Day 2.jpg"
+                        ],
+                        "Family Birthday Celebration": [
+                          "/Family Birthday Celebration 1.webp",
+                          "/Family Birthday Celebration 2.jpg"
+                        ],
+                        "Mountain Hiking Adventure": [
+                          "/Mountain Hiking Adventure 1.jpg",
+                          "/Mountain Hiking Adventure 2.jpg"
+                        ],
+                        "Anniversary Dinner": [
+                          "/Anniversary Dinner 1.jpg",
+                          "/Anniversary Dinner 2.jpg"
+                        ],
+                        "Work Project Launch": [
+                          "/Work Project Launch 1.jpg",
+                          "/Work Project Launch 2.png"
+                        ],
+                        "Weekend Road Trip": [
+                          "/Weekend Road Trip 1.jpg.webp",
+                          "/Weekend Road Trip 2.jpg"
+                        ],
+                        "Art Gallery Opening": [
+                          "/Art Gallery Opening 1.jpg",
+                          "/Art Gallery Opening 2.jpg.webp"
+                        ]
+                      };
+                      for (const [key, images] of Object.entries(imageMap)) {
+                        if (title.includes(key) || key.includes(title)) {
+                          return images;
+                        }
+                      }
+                      return [];
+                    };
+
+                    const getPreviewEmoji = (categories: string[]): string => {
+                      const category = categories?.[0] || "";
+                      if (category === "family") return "👨‍👩‍👧‍👦";
+                      if (category === "friends") return "👥";
+                      if (category === "travel" || category === "nature") return "✈️";
+                      if (category === "achievement" || category === "work") return "🏆";
+                      if (category === "love") return "💕";
+                      return "🖼️";
+                    };
+
+                    // Create multiple duplicates for seamless infinite scroll
+                    const duplicated = [...PRESET_STACKS, ...PRESET_STACKS, ...PRESET_STACKS, ...PRESET_STACKS];
+                    return (
+                      <div
+                        className="marquee-track flex gap-5"
+                        style={{ ["--marquee-duration" as any]: "60s" }}
+                      >
+                        {duplicated.map((stack, index) => {
+                          const demoImages = getDemoImages(stack.title);
+                          const previewEmoji = getPreviewEmoji(stack.categories);
+                          const cardWidth = 320;
+                          
+                          return (
+                            <div
+                              key={`memory-${index}`}
+                              className="shrink-0 bg-gradient-to-br from-emerald-50 to-green-50 rounded-2xl border-2 border-emerald-100 overflow-hidden hover:shadow-lg transition-all duration-300"
+                              style={{ width: `${cardWidth}px` }}
+                            >
+                              {/* Image Preview */}
+                              <div className="h-40 bg-gradient-to-br from-emerald-100 to-green-200 flex items-center justify-center overflow-hidden">
+                                {demoImages.length > 0 ? (
+                                  <img
+                                    src={demoImages[0]}
+                                    alt={stack.title}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="text-5xl">{previewEmoji}</div>
+                                )}
+                              </div>
+                              
+                              {/* Card Content */}
+                              <div className="p-5">
+                                <div className="flex items-start justify-between mb-2">
+                                  <h3 className="text-lg font-bold text-gray-900 line-clamp-1">{stack.title}</h3>
+                                  <span className="text-xs text-gray-500 ml-2">{stack.vagueTime || stack.startDate}</span>
+                                </div>
+                                <p className="text-sm text-gray-600 line-clamp-2 mb-3 leading-relaxed">
+                                  {stack.description}
+                                </p>
+                                <div className="flex items-center gap-2 text-xs text-gray-500">
+                                  <span>{stack.mediaFiles.length} items</span>
+                                  {stack.categories.length > 0 && (
+                                    <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full">
+                                      {stack.categories[0]}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+            </div>
             </div>
           </div>
 

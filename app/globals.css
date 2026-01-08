@@ -40,11 +40,7 @@
   width: max-content;
   animation: marqueeXFast var(--marquee-duration-fast, 45s) linear infinite;
 }
-.marquee:hover .marquee-track,
-.marquee:hover .marquee-track-slow,
-.marquee:hover .marquee-track-fast {
-  animation-play-state: paused;
-}
+/* Removed hover pause - marquees now continuously scroll */
 
 :root {
   --background: #ffffff;

@@ -18,7 +18,10 @@ export async function POST(request: NextRequest) {
     // Execute Python script for Google AI
     const pythonScript = path.join(process.cwd(), 'scripts', 'nav_chat_google_ai.py');
     
-    const pythonProcess = spawn('/Library/Frameworks/Python.framework/Versions/3.11/bin/python3', [pythonScript, message, JSON.stringify(conversationHistory)], {
+    // Use cross-platform Python detection
+    const pythonCommand = process.platform === 'win32' ? 'python' : 'python3';
+    
+    const pythonProcess = spawn(pythonCommand, [pythonScript, message, JSON.stringify(conversationHistory)], {
       env: {
         ...process.env,
         PYTHONPATH: path.join(process.cwd(), 'scripts'),

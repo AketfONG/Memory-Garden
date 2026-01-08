@@ -61,20 +61,20 @@ export default function UpdatesPage() {
               <div className="space-y-6">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                    <span className="text-emerald-500 mr-2">✨</span>
-                    New Features
+                    <span className="text-emerald-500 mr-2">🎨</span>
+                    Improvements
                   </h3>
                   <ul className="space-y-2 text-gray-600">
                     <li className="flex items-start">
                       <span className="text-emerald-500 mr-3">•</span>
-                      Coming soon...
+                      UI overhaul, featuring single non-scrollable page view
                     </li>
                   </ul>
                 </div>
 
                 <div className="bg-emerald-100 rounded-full p-4">
                   <p className="text-emerald-700 text-sm">
-                    <strong>Release Date:</strong> Coming soon
+                    <strong>Release Date:</strong> 09/01/2026
                   </p>
                 </div>
               </div>
