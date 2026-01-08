@@ -960,9 +960,11 @@ Respond naturally and warmly to continue the conversation. Keep responses short 
   );
 }
 
+export const dynamic = 'force-dynamic';
+
 export default function MemoryConversation() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<div className="min-h-screen bg-white flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div></div>}>
       <MemoryConversationInner />
     </Suspense>
   );
