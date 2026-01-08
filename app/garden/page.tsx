@@ -1,11 +1,11 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Navigation from "../components/Navigation";
 import { memoryStorage, SavedMemory, MemoryMessage } from "../utils/memoryStorage";
 
-export default function GardenPage() {
+function GardenPageInner() {
   const searchParams = useSearchParams();
   const [selectedMemory, setSelectedMemory] = useState<string | null>(null);
   const [memories, setMemories] = useState<SavedMemory[]>([]);
@@ -926,4 +926,12 @@ export default function GardenPage() {
       )}
     </div>
   );
-} 
+}
+
+export default function GardenPage() {
+  return (
+    <Suspense fallback={null}>
+      <GardenPageInner />
+    </Suspense>
+  );
+}
