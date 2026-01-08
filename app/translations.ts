@@ -67,7 +67,7 @@ export const translations = {
       
       footer: {
         tagline: "Nurturing memories, growing connections, cultivating joy.",
-        copyright: "© 2025 Memory Garden. Built with love and care."
+        copyright: "© 2026 Memory Garden. Built with love and care."
       }
     },
 
@@ -445,7 +445,7 @@ export const translations = {
       
       footer: {
         tagline: "培育記憶，成長連結，培養喜悅。",
-        copyright: "© 2025 記憶花園。用愛與關懷打造。"
+        copyright: "© 2026 記憶花園。用愛與關懷打造。"
       }
     },
 

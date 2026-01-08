@@ -9,6 +9,12 @@ interface NavigationProps {
   backButtonText?: string;
   backButtonHref?: string;
   showStartGrowing?: boolean;
+  fullWidth?: boolean;
+  primaryAction?: {
+    text: string;
+    href: string;
+    variant?: "primary" | "secondary";
+  };
 }
 
 interface PopupMessage {
@@ -22,7 +28,9 @@ export default function Navigation({
   showBackButton = false, 
   backButtonText = "Back to Home",
   backButtonHref = "/",
-  showStartGrowing = false 
+  showStartGrowing = false,
+  fullWidth = false,
+  primaryAction
 }: NavigationProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const { language, setLanguage } = useLanguage();
@@ -195,7 +203,7 @@ export default function Navigation({
     <header className={`fixed top-0 left-0 right-0 bg-white bg-opacity-95 backdrop-blur-md z-50 w-full transition-shadow duration-300 ${
       isScrolled ? 'shadow-lg' : ''
     }`}>
-      <nav className="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto h-16">
+      <nav className={`flex items-center justify-between px-6 py-4 h-16 w-full`}>
         <div className="flex items-center space-x-5 relative z-50">
           <button
             type="button"
@@ -276,7 +284,7 @@ export default function Navigation({
         
         <div className="flex items-center space-x-4">
           <Link href="/updates" className="md:hidden text-gray-600 hover:text-emerald-600 transition-all duration-200 ease-in-out font-medium">
-            v0.3
+            v0.5
           </Link>
           <button
             className="md:hidden flex flex-col justify-center items-center w-10 h-10 focus:outline-none"
@@ -300,7 +308,7 @@ export default function Navigation({
         
         <div className="hidden md:flex items-center space-x-8">
           <Link href="/updates" className="text-gray-600 hover:text-emerald-600 transition-all duration-200 ease-in-out font-medium">
-            v0.3
+            v0.5
           </Link>
           <button
             onClick={handleLangSwitch}
@@ -313,15 +321,21 @@ export default function Navigation({
               <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
             </svg>
           </button>
-          <Link href="/features" className="text-gray-600 hover:text-emerald-600 transition-all duration-200 ease-in-out font-medium">
-            {translations[language].navigation.features}
-          </Link>
-          <Link href="/about" className="text-gray-600 hover:text-emerald-600 transition-all duration-200 ease-in-out font-medium">
-            {translations[language].navigation.about}
-          </Link>
           {showStartGrowing && (
             <Link href="/plant" className="bg-gradient-to-b from-emerald-500 to-green-600 text-white px-6 py-2 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 font-medium">
               {translations[language].navigation.startGrowing}
+            </Link>
+          )}
+          {primaryAction && (
+            <Link
+              href={primaryAction.href}
+              className={
+                primaryAction.variant === "primary"
+                  ? "bg-gradient-to-b from-emerald-500 to-green-600 text-white px-6 py-2 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 font-medium"
+                  : "border-2 border-emerald-200 text-emerald-600 hover:bg-emerald-50 px-6 py-2 rounded-full transition-all duration-300 hover:border-emerald-300 hover:scale-105 font-medium"
+              }
+            >
+              {primaryAction.text}
             </Link>
           )}
           {showBackButton && (
@@ -342,6 +356,9 @@ export default function Navigation({
             ref={menuRef}
             data-mobile-menu
           >
+            <Link href="/old" className="text-gray-600 hover:text-emerald-600 transition-all duration-200 ease-in-out font-medium" onClick={()=>setMobileOpen(false)}>
+              Old Memory Garden
+            </Link>
             <button
               onClick={handleLangSwitch}
               className="text-gray-600 hover:text-emerald-600 transition-all duration-200 ease-in-out font-medium bg-transparent border-none outline-none focus:outline-none"
@@ -353,15 +370,22 @@ export default function Navigation({
                 <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
               </svg>
             </button>
-            <Link href="/features" className="text-gray-600 hover:text-emerald-600 transition-all duration-200 ease-in-out font-medium" onClick={()=>setMobileOpen(false)}>
-              {translations[language].navigation.features}
-            </Link>
-            <Link href="/about" className="text-gray-600 hover:text-emerald-600 transition-all duration-200 ease-in-out font-medium" onClick={()=>setMobileOpen(false)}>
-              {translations[language].navigation.about}
-            </Link>
             {showStartGrowing && (
               <Link href="/plant" className="bg-gradient-to-b from-emerald-500 to-green-600 text-white px-6 py-2 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 font-medium" onClick={()=>setMobileOpen(false)}>
                 {translations[language].navigation.startGrowing}
+              </Link>
+            )}
+            {primaryAction && (
+              <Link
+                href={primaryAction.href}
+                className={
+                  primaryAction.variant === "primary"
+                    ? "bg-gradient-to-b from-emerald-500 to-green-600 text-white px-6 py-2 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 font-medium"
+                    : "border-2 border-emerald-200 text-emerald-600 hover:bg-emerald-50 px-6 py-2 rounded-full transition-all duration-300 hover:border-emerald-300 hover:scale-105 font-medium"
+                }
+                onClick={()=>setMobileOpen(false)}
+              >
+                {primaryAction.text}
               </Link>
             )}
             {showBackButton && (

@@ -207,7 +207,7 @@ export default function TourPage() {
             <span className="text-xl font-semibold text-gray-800">Memory Garden</span>
           </div>
           <p className="text-gray-600">Nurturing memories, growing connections, cultivating joy.</p>
-          <p className="text-sm text-gray-500 mt-4">&copy; 2025 Memory Garden. Built with love and care.</p>
+          <p className="text-sm text-gray-500 mt-4">&copy; 2026 Memory Garden. Built with love and care.</p>
         </div>
       </footer>
     </div>

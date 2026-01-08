@@ -21,6 +21,9 @@ export default function MemoryPage() {
   const [memoryData, setMemoryData] = useState<any>(null);
   const [isLoadingAI, setIsLoadingAI] = useState(false);
   const [memorySaved, setMemorySaved] = useState(false);
+  // Image generation enabled with GetImg API
+  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const sliderRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
 
@@ -32,7 +35,7 @@ export default function MemoryPage() {
         const urlParams = new URLSearchParams(window.location.search);
         const memoryParam = urlParams.get('memory');
         
-        if (memoryParam && !memorySaved) {
+        if (memoryParam && !memorySaved && !memoryData) {
           const decodedMemory = JSON.parse(decodeURIComponent(memoryParam));
           setMemoryData(decodedMemory);
           console.log('Memory data received:', decodedMemory);
@@ -53,11 +56,17 @@ export default function MemoryPage() {
     };
 
     handleFormData();
-  }, [memorySaved]);
+  }, [memorySaved, memoryData]);
 
   // Generate AI insights based on memory data
   const generateAIInsights = async (memory: any) => {
     setIsLoadingAI(true);
+    
+    // Prevent duplicate saving by checking if already saved
+    if (memorySaved) {
+      setIsLoadingAI(false);
+      return;
+    }
     
     try {
       // Create a comprehensive prompt for AI analysis
@@ -77,36 +86,37 @@ export default function MemoryPage() {
 
       const result = await response.json();
 
+      let message: Message;
+      let aiInsights: string;
+
       if (result.success) {
         // Start the conversation with AI-generated insights
-        const aiInsights: Message = {
+        message = {
           id: 1,
           type: 'assistant',
           content: result.reflection,
           timestamp: new Date()
         };
-        
-        setMessages([aiInsights]);
-        
-                // Save the memory with AI insights
-        if (!memorySaved) {
-          saveMemoryToGarden(memory, [aiInsights], result.reflection);
-        }
+        aiInsights = result.reflection;
       } else {
         // Fallback response if AI fails
-        const fallbackMessage: Message = {
+        message = {
           id: 1,
           type: 'assistant',
           content: `Welcome to your Memory Garden! 🌱 I see you've planted a new memory${memory.title ? ` called "${memory.title}"` : ''}. This is a beautiful moment to cherish and reflect upon. How are you feeling about this memory?`,
           timestamp: new Date()
         };
-        setMessages([fallbackMessage]);
-        
-        // Save the memory with fallback insights
-        if (!memorySaved) {
-          saveMemoryToGarden(memory, [fallbackMessage], fallbackMessage.content);
-        }
+        aiInsights = message.content;
       }
+      
+      setMessages([message]);
+      
+      // Save the memory only once with the appropriate insights
+      saveMemoryToGarden(memory, [message], aiInsights);
+      
+            // Generate memory image
+            await generateMemoryImage(memory);
+      
     } catch (error) {
       console.error('Error generating AI insights:', error);
       // Fallback response
@@ -119,9 +129,7 @@ export default function MemoryPage() {
       setMessages([fallbackMessage]);
       
       // Save the memory with fallback insights
-      if (!memorySaved) {
-        saveMemoryToGarden(memory, [fallbackMessage], fallbackMessage.content);
-      }
+      saveMemoryToGarden(memory, [fallbackMessage], fallbackMessage.content);
     } finally {
       setIsLoadingAI(false);
     }
@@ -129,6 +137,12 @@ export default function MemoryPage() {
 
   // Save memory to garden storage
   const saveMemoryToGarden = (memory: any, chatHistory: Message[], aiInsights: string) => {
+    // Prevent duplicate saves
+    if (memorySaved) {
+      console.log('Memory already saved, skipping duplicate save');
+      return;
+    }
+    
     try {
       // Convert Message[] to MemoryMessage[] with proper timestamps
       const memoryMessages: MemoryMessage[] = chatHistory.map(msg => ({
@@ -148,6 +162,45 @@ export default function MemoryPage() {
       setMemorySaved(true);
     } catch (error) {
       console.error('Error saving memory to garden:', error);
+    }
+  };
+
+  // Generate image for memory visualization
+  // Image generation temporarily disabled
+  const generateMemoryImage = async (memory: any) => {
+    setIsGeneratingImage(true);
+    try {
+      const response = await fetch('/api/generate-image-hybrid', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'memory_visualization',
+          memoryTitle: memory.title || 'Untitled Memory',
+          memoryDescription: memory.description || 'A precious memory',
+          style: 'realistic',
+          emotion: memory.customEmotion || 'peaceful',
+          category: memory.customCategory || 'general'
+        }),
+      });
+
+      const result = await response.json();
+      
+      if (result.success && result.imageData) {
+        setGeneratedImage(result.imageData);
+        console.log(`Image generated using ${result.provider} provider`);
+      } else {
+        console.error('Failed to generate image:', result.error);
+        // Show a message about adding credits if GetImg quota is exceeded
+        if (result.error && result.error.includes('quota exceeded')) {
+          console.log('GetImg quota exceeded. Please add credits to your GetImg account for realistic image generation.');
+        }
+      }
+    } catch (error) {
+      console.error('Error generating memory image:', error);
+    } finally {
+      setIsGeneratingImage(false);
     }
   };
 
@@ -382,121 +435,74 @@ export default function MemoryPage() {
               </p>
             </div>
 
+        {/* Memory Visualization - GetImg API */}
+        <div className="mb-16">
+          <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Your Memory Visualization</h2>
+          <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-3xl p-8 shadow-lg border border-emerald-100">
+            <div className="aspect-video bg-gradient-to-br from-emerald-100 to-green-200 rounded-2xl flex items-center justify-center overflow-hidden">
+              {isGeneratingImage ? (
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+                  <p className="text-lg font-semibold text-gray-700 mb-2">Generating Your Memory Visualization...</p>
+                  <p className="text-gray-600">Creating a beautiful, realistic image of your memory</p>
+                </div>
+              ) : generatedImage ? (
+                <div className="w-full h-full flex items-center justify-center">
+                  <img 
+                    src={`data:image/png;base64,${generatedImage}`}
+                    alt="Memory Visualization"
+                    className="max-w-full max-h-full object-contain rounded-lg shadow-lg"
+                  />
+                </div>
+              ) : (
+                <div className="text-center">
+                  <div className="text-6xl mb-4">🎬</div>
+                  <p className="text-lg font-semibold text-gray-700 mb-2">Memory Visualisation Generated</p>
+                  <p className="text-gray-600">A beautiful visualization of your memory</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
             {/* Memory Summary */}
             {memoryData && (
-              <div className="mb-8 bg-gradient-to-br from-emerald-50 to-green-50 rounded-3xl p-6 shadow-sm border border-emerald-100">
-                <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">🌿 Memory Summary</h3>
-                <div className="grid md:grid-cols-2 gap-4 text-sm">
-                  {memoryData.title && (
-                    <div>
-                      <span className="font-medium text-emerald-700">Title:</span> {memoryData.title}
-                    </div>
-                  )}
-                  {memoryData.description && (
-                    <div className="md:col-span-2">
-                      <span className="font-medium text-emerald-700">Description:</span> {memoryData.description}
-                    </div>
-                  )}
-                  {memoryData.startDate && (
-                    <div>
-                      <span className="font-medium text-emerald-700">Date:</span> {memoryData.startDate}
-                    </div>
-                  )}
-                  {memoryData.categories && memoryData.categories.length > 0 && (
-                    <div>
-                      <span className="font-medium text-emerald-700">Categories:</span> {memoryData.categories.join(', ')}
-                    </div>
-                  )}
-                  {memoryData.mediaFiles && memoryData.mediaFiles.length > 0 && (
-                    <div className="md:col-span-2">
-                      <span className="font-medium text-emerald-700">Media:</span> {memoryData.mediaFiles.map((f: any) => f.name).join(', ')}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Generated Video Section */}
-            <div className="mb-16">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Your Memory Visualization</h2>
-              <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-3xl p-8 shadow-lg border border-emerald-100">
-                <div className="aspect-video bg-gradient-to-br from-emerald-100 to-green-200 rounded-2xl flex items-center justify-center relative overflow-hidden">
-                  {/* Video Placeholder */}
-                  <div className="text-center">
-                    <div className="text-6xl mb-4">🎬</div>
-                    <p className="text-lg font-semibold text-gray-700 mb-2">Memory Video Generated</p>
-                    <p className="text-gray-600">A beautiful visualization of your memory</p>
-                  </div>
-                  
-                  {/* Video Progress Bar */}
-                  <div className="absolute bottom-0 left-0 right-0 h-2 bg-emerald-200">
-                    <div className="h-full bg-emerald-500 rounded-r-full" style={{ width: isPlaying ? '45%' : '0%' }}></div>
-                  </div>
-                </div>
-
-                {/* Video Controls */}
-                <div className="mt-6 flex items-center justify-between">
+              <div className="mb-8 bg-gradient-to-br from-emerald-50 to-green-50 rounded-3xl p-8 border border-emerald-100 shadow-sm hover:shadow-xl transition-all duration-300">
+                <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center space-x-4">
-                    <button
-                      onClick={handlePlayPause}
-                      className="bg-gradient-to-b from-emerald-500 to-green-600 text-white px-6 py-3 rounded-full shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 flex items-center space-x-2 font-medium"
-                    >
-                      {isPlaying ? (
-                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <rect x="3" y="3" width="4" height="12" rx="1" fill="white"/>
-                          <rect x="11" y="3" width="4" height="12" rx="1" fill="white"/>
-                        </svg>
-                      ) : (
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <polygon points="4,3 17,10 4,17" fill="white"/>
-                        </svg>
-                      )}
-                      <span>{isPlaying ? "Pause" : "Play"}</span>
-                    </button>
-                    <div className="text-sm text-gray-600">
-                      {isPlaying ? "2:15 / 5:00" : "0:00 / 5:00"}
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className="mr-3 text-gray-500 text-sm w-8 text-right">{dragVolume !== null ? dragVolume : volume}</span>
-                    <div className="flex items-center w-32 h-10 select-none">
-                      <div
-                        ref={sliderRef}
-                        className="relative w-full h-2 bg-emerald-100 rounded-full cursor-pointer"
-                        onClick={handleSliderClick}
-                      >
-                        <div
-                          className="absolute left-0 top-1/2 -translate-y-1/2 h-2 bg-emerald-400 rounded-full transition-all duration-200"
-                          style={{ width: `${dragVolume !== null ? dragVolume : volume}%` }}
-                        ></div>
-                        <div
-                          className="absolute top-1/2 -translate-y-1/2 transition-all duration-200"
-                          style={{ left: `calc(${dragVolume !== null ? dragVolume : volume}% - 12px)` }}
-                        >
-                          <div
-                            className="w-6 h-6 bg-gradient-to-b from-emerald-500 to-green-600 rounded-full shadow-lg border-4 border-white transition-all duration-200 hover:shadow-xl hover:scale-105 cursor-pointer"
-                            onMouseDown={handleKnobMouseDown}
-                          ></div>
+                    <span className="text-3xl">🌿</span>
+                        <div>
+                          <h3 className="text-2xl font-bold text-gray-800">{memoryData.title || 'Memory Garden'}</h3>
+                          <p className="text-emerald-600 font-medium">Your Planted Memory</p>
                         </div>
-                      </div>
-                    </div>
                   </div>
                 </div>
                 
-                {/* Function Keys */}
-                <div className="mt-6 flex justify-start flex-wrap gap-4">
-                  <button className="w-fit cursor-pointer border-2 border-emerald-200 text-emerald-600 hover:bg-emerald-100 px-6 py-3 rounded-full transition-all duration-300 hover:border-emerald-300 hover:scale-105 font-medium flex-shrink-0 whitespace-nowrap">
-                    📥 Download Video
-                  </button>
-                  <button className="w-fit cursor-pointer border-2 border-emerald-200 text-emerald-600 hover:bg-emerald-100 px-6 py-3 rounded-full transition-all duration-300 hover:border-emerald-300 hover:scale-105 font-medium flex-shrink-0 whitespace-nowrap">
-                    🔄 Regenerate
-                  </button>
-                  <button className="w-fit cursor-pointer border-2 border-emerald-200 text-emerald-600 hover:bg-emerald-100 px-6 py-3 rounded-full transition-all duration-300 hover:border-emerald-300 hover:scale-105 font-medium flex-shrink-0 whitespace-nowrap">
-                    📤 Share
-                  </button>
+                <div className="space-y-6">
+
+                  {memoryData.description && (
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                        <span className="text-emerald-500 mr-2">📖</span>
+                        Description
+                      </h4>
+                      <p className="text-gray-600 ml-6">{memoryData.description}</p>
+                    </div>
+                  )}
+
+
+                  <div className="bg-emerald-100 rounded-full p-4">
+                    <p className="text-emerald-700 text-sm">
+                      <strong>Planted:</strong> {new Date().toLocaleDateString('en-GB', { 
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                      })}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* AI Chat Interface */}
             <div className="bg-white rounded-3xl shadow-xl border border-emerald-100 overflow-hidden">
@@ -593,7 +599,7 @@ export default function MemoryPage() {
             <span className="text-xl font-semibold text-gray-800">Memory Garden</span>
           </div>
           <p className="text-gray-600">Nurturing memories, growing connections, cultivating joy.</p>
-          <p className="text-sm text-gray-500 mt-4">&copy; 2025 Memory Garden. Built with love and care.</p>
+          <p className="text-sm text-gray-500 mt-4">&copy; 2026 Memory Garden. Built with love and care.</p>
         </div>
       </footer>
     </div>

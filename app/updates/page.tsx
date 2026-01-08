@@ -22,7 +22,13 @@ export default function UpdatesPage() {
               <p className="text-lg text-gray-600 leading-relaxed">
                 Track the growth and evolution of Memory Garden through our version updates.
               </p>
-              <div className="mt-6 flex gap-4 justify-center">
+              <div className="mt-6 flex gap-4 justify-center flex-wrap">
+                <Link 
+                  href="/old" 
+                  className="inline-block px-6 py-3 bg-emerald-100 text-emerald-700 rounded-full font-medium hover:bg-emerald-200 transition-all duration-300 ease-in-out"
+                >
+                  🌱 Old Memory Garden
+                </Link>
                 <a 
                   href="/style-config" 
                   className="inline-block px-6 py-3 bg-emerald-100 text-emerald-700 rounded-full font-medium hover:bg-emerald-200 transition-all duration-300 ease-in-out"
@@ -30,24 +36,100 @@ export default function UpdatesPage() {
                   🎨 Style Configuration
                 </a>
                 <a 
-                  href="/testing" 
+                  href="/ai-usage" 
                   className="inline-block px-6 py-3 bg-emerald-100 text-emerald-700 rounded-full font-medium hover:bg-emerald-200 transition-all duration-300 ease-in-out"
                 >
-                  🧪 Testing
+                  📊 AI Usage & Token Status
                 </a>
               </div>
             </div>
 
 
 
-            {/* Version v0.3 */}
+            {/* Version v0.5 */}
             <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-3xl p-8 border border-emerald-100 shadow-sm hover:shadow-xl transition-all duration-300 mb-8">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-4">
                   <span className="text-3xl">🌱</span>
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-800">Version 0.3</h2>
+                    <h2 className="text-2xl font-bold text-gray-800">Version 0.5</h2>
                     <p className="text-emerald-600 font-medium">Latest Version</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                    <span className="text-emerald-500 mr-2">✨</span>
+                    New Features
+                  </h3>
+                  <ul className="space-y-2 text-gray-600">
+                    <li className="flex items-start">
+                      <span className="text-emerald-500 mr-3">•</span>
+                      Coming soon...
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="bg-emerald-100 rounded-full p-4">
+                  <p className="text-emerald-700 text-sm">
+                    <strong>Release Date:</strong> Coming soon
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Version v0.4 */}
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl p-8 border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-4">
+                  <span className="text-3xl">🌱</span>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-800">Version 0.4</h2>
+                    <p className="text-gray-600 font-medium">Previous Version</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                    <span className="text-emerald-500 mr-2">✨</span>
+                    New Features
+                  </h3>
+                  <ul className="space-y-2 text-gray-600">
+                    <li className="flex items-start">
+                      <span className="text-emerald-500 mr-3">•</span>
+                      Voice Memory Interaction - Talk to Sprout about your memories with your voice
+                    </li>
+                    <li className="flex items-start">
+                      <span className="text-emerald-500 mr-3">•</span>
+                      Memory Cards - Visual memory cards with image support in a dedicated view
+                    </li>
+                    <li className="flex items-start">
+                      <span className="text-emerald-500 mr-3">•</span>
+                      Memory preview page for adding media after voice conversations
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="bg-gray-200 rounded-full p-4">
+                  <p className="text-gray-700 text-sm">
+                    <strong>Release Date:</strong> 25/11/2026
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Version v0.3 */}
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl p-8 border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-4">
+                  <span className="text-3xl">🌱</span>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-800">Version 0.3</h2>
+                    <p className="text-gray-600 font-medium">Previous Version</p>
                   </div>
                 </div>
               </div>
@@ -89,9 +171,9 @@ export default function UpdatesPage() {
 
 
 
-                <div className="bg-emerald-100 rounded-full p-4">
-                  <p className="text-emerald-700 text-sm">
-                    <strong>Release Date:</strong> 23/08/2025
+                <div className="bg-gray-200 rounded-full p-4">
+                  <p className="text-gray-700 text-sm">
+                    <strong>Release Date:</strong> 23/08/2026
                   </p>
                 </div>
               </div>
@@ -146,7 +228,7 @@ export default function UpdatesPage() {
 
                 <div className="bg-gray-200 rounded-full p-4">
                   <p className="text-gray-700 text-sm">
-                    <strong>Release Date:</strong> 13/07/2025
+                    <strong>Release Date:</strong> 13/07/2026
                   </p>
                 </div>
               </div>
@@ -230,7 +312,7 @@ export default function UpdatesPage() {
 
                 <div className="bg-gray-200 rounded-full p-4">
                   <p className="text-gray-700 text-sm">
-                    <strong>Release Date:</strong> 28/06/2025
+                    <strong>Release Date:</strong> 28/06/2026
                   </p>
                 </div>
               </div>
@@ -264,7 +346,7 @@ export default function UpdatesPage() {
 
                 <div className="bg-gray-200 rounded-full p-4">
                   <p className="text-gray-700 text-sm">
-                    <strong>Release Date:</strong> 27/06/2025
+                    <strong>Release Date:</strong> 27/06/2026
                   </p>
                 </div>
               </div>
@@ -311,7 +393,7 @@ export default function UpdatesPage() {
             <span className="text-xl font-semibold text-gray-800">Memory Garden</span>
           </div>
           <p className="text-gray-600">Nurturing memories, growing connections, cultivating joy.</p>
-          <p className="text-sm text-gray-500 mt-4">&copy; 2025 Memory Garden. Built with love and care.</p>
+          <p className="text-sm text-gray-500 mt-4">&copy; 2026 Memory Garden. Built with love and care.</p>
         </div>
       </footer>
     </div>
