@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@deepgram/sdk';
 
-const deepgram = createClient(process.env.DEEPGRAM_API_KEY || '');
+// Lazily-initialised Deepgram client so build doesn't fail when no API key is set
+let deepgram: ReturnType<typeof createClient> | null = null;
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,11 +16,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!process.env.DEEPGRAM_API_KEY) {
+    // If no API key is configured, gracefully return an error instead of crashing build/runtime
+    const apiKey = process.env.DEEPGRAM_API_KEY;
+    if (!apiKey) {
       return NextResponse.json(
-        { success: false, error: 'Deepgram API key not configured' },
-        { status: 500 }
+        {
+          success: false,
+          error: 'Deepgram transcription is not configured on this deployment.',
+        },
+        { status: 503 }
       );
+    }
+
+    // Initialise client only when needed and only when key exists
+    if (!deepgram) {
+      deepgram = createClient(apiKey);
     }
 
     // Convert File to buffer
