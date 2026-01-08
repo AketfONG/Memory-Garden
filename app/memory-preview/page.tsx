@@ -1,10 +1,10 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Navigation from "../components/Navigation";
 import { memoryStorage, MemoryMessage } from "../utils/memoryStorage";
 
-export default function MemoryPreviewPage() {
+function MemoryPreviewPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [mounted, setMounted] = useState(false);
@@ -246,3 +246,12 @@ export default function MemoryPreviewPage() {
   );
 }
 
+export const dynamic = 'force-dynamic';
+
+export default function MemoryPreviewPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-white flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div></div>}>
+      <MemoryPreviewPageInner />
+    </Suspense>
+  );
+}
