@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import Navigation from "../components/Navigation";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -37,7 +37,7 @@ interface SpeechRecognitionAlternative {
   transcript: string;
 }
 
-export default function MemoryConversation() {
+function MemoryConversationInner() {
   const searchParams = useSearchParams();
   const type = searchParams.get("type") || "stack"; // stack, random, new
   const stackId = searchParams.get("stack");
@@ -960,3 +960,10 @@ Respond naturally and warmly to continue the conversation. Keep responses short 
   );
 }
 
+export default function MemoryConversation() {
+  return (
+    <Suspense fallback={null}>
+      <MemoryConversationInner />
+    </Suspense>
+  );
+}
