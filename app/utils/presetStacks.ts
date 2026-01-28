@@ -4,7 +4,8 @@ export const PRESET_STACKS: Omit<MemoryStack, 'id' | 'timestamp'>[] = [
   {
     title: "Summer Beach Day",
     description: "A perfect day at the beach with friends, building sandcastles and enjoying the warm sun.",
-    startDate: "2024-07-15",
+    emoji: "🏖️",
+    startDate: "2025-07-15",
     startTime: "",
     endDate: "",
     endTime: "",
@@ -21,7 +22,8 @@ export const PRESET_STACKS: Omit<MemoryStack, 'id' | 'timestamp'>[] = [
   {
     title: "Family Birthday Celebration",
     description: "Celebrating grandma's 80th birthday with the whole family gathered together.",
-    startDate: "2024-09-22",
+    emoji: "🎂",
+    startDate: "2025-09-22",
     startTime: "",
     endDate: "",
     endTime: "",
@@ -38,7 +40,8 @@ export const PRESET_STACKS: Omit<MemoryStack, 'id' | 'timestamp'>[] = [
   {
     title: "Mountain Hiking Adventure",
     description: "Challenging hike to the summit with breathtaking views and a sense of accomplishment.",
-    startDate: "2024-06-10",
+    emoji: "🏔️",
+    startDate: "2025-06-10",
     startTime: "",
     endDate: "",
     endTime: "",
@@ -55,7 +58,8 @@ export const PRESET_STACKS: Omit<MemoryStack, 'id' | 'timestamp'>[] = [
   {
     title: "Anniversary Dinner",
     description: "Romantic dinner at our favorite restaurant, celebrating another year together.",
-    startDate: "2024-05-14",
+    emoji: "❤️",
+    startDate: "2025-05-14",
     startTime: "",
     endDate: "",
     endTime: "",
@@ -72,7 +76,8 @@ export const PRESET_STACKS: Omit<MemoryStack, 'id' | 'timestamp'>[] = [
   {
     title: "Work Project Launch",
     description: "Successfully launched our biggest project of the year with the entire team.",
-    startDate: "2024-10-05",
+    emoji: "🚀",
+    startDate: "2025-10-05",
     startTime: "",
     endDate: "",
     endTime: "",
@@ -89,7 +94,8 @@ export const PRESET_STACKS: Omit<MemoryStack, 'id' | 'timestamp'>[] = [
   {
     title: "Weekend Road Trip",
     description: "Spontaneous road trip to a nearby town, discovering hidden gems and local cafes.",
-    startDate: "2024-08-18",
+    emoji: "🚗",
+    startDate: "2025-08-18",
     startTime: "",
     endDate: "2024-08-20",
     endTime: "",
@@ -106,7 +112,8 @@ export const PRESET_STACKS: Omit<MemoryStack, 'id' | 'timestamp'>[] = [
   {
     title: "Art Gallery Opening",
     description: "Attended a local artist's gallery opening, surrounded by beautiful paintings and creative energy.",
-    startDate: "2024-11-12",
+    emoji: "🖼️",
+    startDate: "2025-11-12",
     startTime: "",
     endDate: "",
     endTime: "",

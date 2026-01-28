@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Navigation from '../components/Navigation';
+import { useLanguage } from '../contexts/LanguageContext';
+import { translations } from '../translations';
 
 interface StyleComponent {
   id: string;
@@ -14,6 +16,9 @@ interface StyleComponent {
 }
 
 export default function StyleConfigPage() {
+  const { language } = useLanguage();
+  const t = translations[language];
+
   const [components, setComponents] = useState<StyleComponent[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -489,18 +494,24 @@ export default function StyleConfigPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
-      <Navigation showBackButton={true} backButtonText="Back to Updates" backButtonHref="/updates" />
+      <Navigation
+        showBackButton={true}
+        backButtonText={language === 'en' ? 'Back to Updates' : '返回更新日誌'}
+        backButtonHref="/updates"
+      />
 
       {/* Main Content */}
       <main className="pt-32 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
-              🎨 Style Configuration
+          <div className="mb-10">
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3">
+              {language === 'en' ? 'Style Configuration' : '風格設定'}
             </h1>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Store and access your styled components for easy reuse across projects
+            <p className="text-lg text-gray-600 max-w-2xl">
+              {language === 'en'
+                ? 'Store and access your styled components for easy reuse across projects'
+                : '儲存同查看常用樣式組件，方便喺唔同頁面同專案重用。'}
             </p>
           </div>
 
@@ -528,13 +539,17 @@ export default function StyleConfigPage() {
 
                 {/* Live Preview */}
                 <div className="p-6 border-b border-gray-100">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">Live Preview:</h4>
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">
+                    {language === 'en' ? 'Live Preview:' : '即時預覽：'}
+                  </h4>
                   {renderComponentPreview(component.code)}
                 </div>
 
                 {/* Code Preview - pushed to bottom */}
                 <div className="p-6 flex-1 flex flex-col">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">Code:</h4>
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">
+                    {language === 'en' ? 'Code:' : '程式碼：'}
+                  </h4>
                   <div className="bg-gray-50 rounded-2xl p-4 max-h-32 overflow-y-auto flex-1">
                     <pre className="text-xs text-gray-700 font-mono whitespace-pre-wrap">
                       {component.code}
@@ -546,9 +561,15 @@ export default function StyleConfigPage() {
                 <div className="p-6 pt-0">
                   <button
                     onClick={() => copyToClipboard(component.code, component.id)}
-                                               className="w-full px-4 py-2 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium hover:bg-emerald-200 transition-all duration-300 ease-in-out"
+                    className="w-full px-4 py-2 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium hover:bg-emerald-200 transition-all duration-300 ease-in-out"
                   >
-                    {copiedId === component.id ? '✓ Copied!' : 'Copy Code'}
+                    {copiedId === component.id
+                      ? language === 'en'
+                        ? '✓ Copied!'
+                        : '✓ 已複製！'
+                      : language === 'en'
+                        ? 'Copy Code'
+                        : '複製程式碼'}
                   </button>
                 </div>
               </div>
@@ -559,7 +580,11 @@ export default function StyleConfigPage() {
           {components.length === 0 && (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">🎨</div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">Loading your style library...</h3>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                {language === 'en'
+                  ? 'Loading your style library...'
+                  : '緊喺載入你嘅風格樣式庫...'}
+              </h3>
             </div>
           )}
         </div>

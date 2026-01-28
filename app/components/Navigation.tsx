@@ -24,6 +24,9 @@ interface PopupMessage {
   timestamp: Date;
 }
 
+// Feature flag for the header chatbot. Set to true to re-enable the popup chat.
+const NAV_CHAT_ENABLED = false;
+
 export default function Navigation({ 
   showBackButton = false, 
   backButtonText = "Back to Home",
@@ -41,7 +44,17 @@ export default function Navigation({
   const [aiMessage, setAiMessage] = useState('');
   const [popupMessages, setPopupMessages] = useState<PopupMessage[]>([]);
   const menuRef = useRef<HTMLDivElement>(null);
-  const handleLangSwitch = () => setLanguage(language === 'en' ? 'zh' : 'en');
+  const handleLangSwitch = () => {
+    if (typeof window !== 'undefined') {
+      const message =
+        language === 'en'
+          ? 'Switching language will clear all saved memories and stacks on this device.\n\nDo you want to continue?'
+          : '切換語言會清除此裝置上儲存嘅所有記憶同堆疊。\n\n確定要繼續嗎？';
+      const confirmed = window.confirm(message);
+      if (!confirmed) return;
+    }
+    setLanguage(language === 'en' ? 'zh' : 'en');
+  };
   const handleMobileToggle = () => {
     if (!mobileOpen) {
       setMobileOpen(true);
@@ -55,6 +68,9 @@ export default function Navigation({
     }
   };
   const handleAIPopup = () => {
+    if (!NAV_CHAT_ENABLED) {
+      return;
+    }
     if (!showAIPopup) {
       setShowAIPopup(true);
       setAIPopupAnimating('in');
@@ -162,7 +178,7 @@ export default function Navigation({
   }, []);
 
   useEffect(() => {
-    if (!(showAIPopup || aiPopupAnimating === 'out')) return;
+    if (!NAV_CHAT_ENABLED || !(showAIPopup || aiPopupAnimating === 'out')) return;
     function handle(e: MouseEvent) {
       if (!(e.target as HTMLElement).closest('.speech-bubble') && !(e.target as HTMLElement).closest('[aria-label="Open Memory Garden AI"]')) {
         handleAIPopup();
@@ -189,7 +205,7 @@ export default function Navigation({
 
   useEffect(() => {
     // Prevent background scroll when popup is open
-    if (showAIPopup || aiPopupAnimating === 'in') {
+    if (NAV_CHAT_ENABLED && (showAIPopup || aiPopupAnimating === 'in')) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -205,20 +221,21 @@ export default function Navigation({
     }`}>
       <nav className={`flex items-center justify-between px-6 py-4 h-16 w-full`}>
         <div className="flex items-center space-x-5 relative z-50">
-          <button
-            type="button"
-            className="w-10 h-10 bg-gradient-to-b from-emerald-50 via-emerald-100 to-emerald-200 rounded-full flex items-center justify-center shadow-lg hover:scale-120 transition-all duration-300 focus:outline-none"
-            onClick={handleAIPopup}
-            aria-label="Open Memory Garden AI"
-          >
-            <span className="text-emerald-600 font-bold text-lg">🌱</span>
-          </button>
+          <Link href="/">
+            <button
+              type="button"
+              className="w-10 h-10 bg-gradient-to-b from-emerald-50 via-emerald-100 to-emerald-200 rounded-full flex items-center justify-center shadow-lg hover:scale-120 transition-all duration-300 focus:outline-none"
+              aria-label="Go to home"
+            >
+              <span className="text-emerald-600 font-bold text-lg">🌱</span>
+            </button>
+          </Link>
           <Link href="/" className="text-2xl font-bold text-gray-800 hover:text-emerald-600 transition-all duration-200 ease-in-out">
             {translations[language].navigation.memoryGarden}
           </Link>
-          {(showAIPopup || aiPopupAnimating === 'out') && (
-            <div
-              className={`absolute left-0 top-full mt-3 z-50 min-w-[390px] max-w-md min-h-[300px] bg-white rounded-3xl shadow-2xl border border-emerald-100 p-5 speech-bubble flex flex-col justify-between max-h-[80vh] overflow-hidden ${aiPopupAnimating === 'in' ? 'animate-slide-down' : aiPopupAnimating === 'out' ? 'animate-slide-up' : ''}`}
+          {NAV_CHAT_ENABLED && (showAIPopup || aiPopupAnimating === 'out') && (
+          <div
+              className={`absolute left-0 top-full mt-3 z-50 min-w-[390px] max-w-md min-h-[300px] bg-white rounded-[2rem] shadow-2xl border-2 border-emerald-100 p-5 speech-bubble flex flex-col justify-between max-h-[80vh] overflow-hidden ${aiPopupAnimating === 'in' ? 'animate-slide-down' : aiPopupAnimating === 'out' ? 'animate-slide-up' : ''}`}
               onAnimationEnd={() => { if (aiPopupAnimating === 'out') setAIPopupAnimating('none'); }}
               style={{
                 maxHeight: 'calc(100vh - 100px)',
@@ -282,10 +299,21 @@ export default function Navigation({
           )}
         </div>
         
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-8">
           <Link href="/updates" className="md:hidden text-gray-600 hover:text-emerald-600 transition-all duration-200 ease-in-out font-medium">
-            v0.5
+            v1.0
           </Link>
+          <button
+            onClick={handleLangSwitch}
+            className="md:hidden text-gray-600 hover:text-emerald-600 transition-all duration-200 ease-in-out font-medium bg-transparent border-none outline-none focus:outline-none"
+            aria-label="Switch language"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            </svg>
+          </button>
           <button
             className="md:hidden flex flex-col justify-center items-center w-10 h-10 focus:outline-none"
             onClick={handleMobileToggle}
@@ -308,7 +336,7 @@ export default function Navigation({
         
         <div className="hidden md:flex items-center space-x-8">
           <Link href="/updates" className="text-gray-600 hover:text-emerald-600 transition-all duration-200 ease-in-out font-medium">
-            v0.5
+            v1.0
           </Link>
           <button
             onClick={handleLangSwitch}
@@ -356,20 +384,6 @@ export default function Navigation({
             ref={menuRef}
             data-mobile-menu
           >
-            <Link href="/old" className="text-gray-600 hover:text-emerald-600 transition-all duration-200 ease-in-out font-medium" onClick={()=>setMobileOpen(false)}>
-              Old Memory Garden
-            </Link>
-            <button
-              onClick={handleLangSwitch}
-              className="text-gray-600 hover:text-emerald-600 transition-all duration-200 ease-in-out font-medium bg-transparent border-none outline-none focus:outline-none"
-              aria-label="Switch language"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="2" y1="12" x2="22" y2="12"></line>
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-              </svg>
-            </button>
             {showStartGrowing && (
               <Link href="/plant" className="bg-gradient-to-b from-emerald-500 to-green-600 text-white px-6 py-2 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 font-medium" onClick={()=>setMobileOpen(false)}>
                 {translations[language].navigation.startGrowing}

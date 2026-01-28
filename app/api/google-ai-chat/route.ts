@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { spawn } from 'child_process';
-import path from 'path';
+import Replicate from 'replicate';
+
+const replicate = new Replicate({
+  auth: process.env.REPLICATE_API_KEY,
+});
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,123 +17,51 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!process.env.GOOGLE_AI_API_KEY) {
-      return NextResponse.json(
-        { success: false, error: 'Google AI API key not configured' },
-        { status: 500 }
-      );
+    // Build a single prompt including system instruction and history
+    const systemInstruction =
+      'You are Sprout, a compassionate and nurturing AI companion in Memory Garden. You help users reflect on their memories with empathy and understanding. Be warm, natural, and genuinely curious about their experiences. Keep responses conversational and concise (under 200 words).';
+
+    let prompt = systemInstruction + '\n\n';
+
+    if (conversationHistory && Array.isArray(conversationHistory)) {
+      for (const msg of conversationHistory) {
+        if (!msg || !msg.content) continue;
+        const roleLabel = msg.role === 'assistant' ? 'Sprout' : 'User';
+        prompt += `${roleLabel}: ${msg.content}\n`;
+      }
     }
 
-    // Prepare messages for Google AI
-    const messages = conversationHistory || [];
-    
-    // Add system message if not present
-    if (!messages.some((msg: any) => msg.role === 'system')) {
-      messages.unshift({
-        role: 'system',
-        content: 'You are Sprout, a compassionate and nurturing AI companion in Memory Garden. You help users reflect on their memories with empathy and understanding. Be warm, natural, and genuinely curious about their experiences. Keep responses conversational and concise (under 200 words).'
-      });
-    }
+    prompt += `User: ${message}\nSprout:`;
 
-    // Add current user message
-    messages.push({
-      role: 'user',
-      content: message,
-    });
-
-    // Create a streaming response using Python script
     const encoder = new TextEncoder();
+
     const readableStream = new ReadableStream({
       async start(controller) {
         try {
-          // Execute Python script for Google AI streaming
-          const pythonScript = path.join(process.cwd(), 'scripts', 'google_ai_stream.py');
-          const scriptDir = path.join(process.cwd(), 'scripts');
-          
-          // Use cross-platform Python detection
-          const pythonCommand = process.platform === 'win32' ? 'python' : 'python3';
-          
-          const pythonProcess = spawn(pythonCommand, [
-            pythonScript,
-            message,
-            JSON.stringify(messages)
-          ], {
-            env: {
-              ...process.env,
-              PYTHONPATH: scriptDir,
-              PYTHONUNBUFFERED: '1'
+          let fullResponse = '';
+
+          // Use Replicate SDK streaming, but only accumulate on the server
+          // and send ONE final message to the client to avoid duplicated text.
+          for await (const event of replicate.stream('openai/gpt-4o-mini', {
+            input: {
+              prompt,
             },
-            cwd: scriptDir
-          });
+          })) {
+            const chunk = String(event);
+            fullResponse += chunk;
+          }
 
-          let buffer = '';
-          
-          pythonProcess.stdout.on('data', (data) => {
-            buffer += data.toString();
-            const lines = buffer.split('\n');
-            buffer = lines.pop() || ''; // Keep incomplete line in buffer
-            
-            for (const line of lines) {
-              if (line.trim()) {
-                try {
-                  const parsed = JSON.parse(line.trim());
-                  if (parsed.type === 'chunk' && parsed.content) {
-                    const data = JSON.stringify({
-                      type: 'chunk',
-                      content: parsed.content,
-                    }) + '\n';
-                    controller.enqueue(encoder.encode(data));
-                  } else if (parsed.type === 'complete' && parsed.content) {
-                    const finalData = JSON.stringify({
-                      type: 'complete',
-                      content: parsed.content,
-                    }) + '\n';
-                    controller.enqueue(encoder.encode(finalData));
-                    controller.close();
-                  } else if (parsed.type === 'error') {
-                    const errorData = JSON.stringify({
-                      type: 'error',
-                      error: parsed.error || 'Unknown error',
-                    }) + '\n';
-                    controller.enqueue(encoder.encode(errorData));
-                    controller.close();
-                  }
-                } catch (e) {
-                  // Skip invalid JSON
-                }
-              }
-            }
-          });
-
-          pythonProcess.stderr.on('data', (data) => {
-            console.error('Python stderr:', data.toString());
-          });
-
-          pythonProcess.on('close', (code) => {
-            if (code !== 0) {
-              const errorData = JSON.stringify({
-                type: 'error',
-                error: `Python process exited with code ${code}`,
-              }) + '\n';
-              controller.enqueue(encoder.encode(errorData));
-            }
-            controller.close();
-          });
-
-          pythonProcess.on('error', (error) => {
-            console.error('Python process error:', error);
-            const errorData = JSON.stringify({
-              type: 'error',
-              error: error.message,
-            }) + '\n';
-            controller.enqueue(encoder.encode(errorData));
-            controller.close();
-          });
+          const finalData = JSON.stringify({
+            type: 'complete',
+            content: fullResponse,
+          }) + '\n';
+          controller.enqueue(encoder.encode(finalData));
+          controller.close();
         } catch (error) {
-          console.error('Streaming error:', error);
+          console.error('Replicate chat streaming error:', error);
           const errorData = JSON.stringify({
             type: 'error',
-            error: error instanceof Error ? error.message : String(error),
+            error: error instanceof Error ? error.message : 'Unknown error',
           }) + '\n';
           controller.enqueue(encoder.encode(errorData));
           controller.close();
@@ -146,7 +77,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Google AI chat API error:', error);
+    console.error('Replicate chat API error:', error);
     return NextResponse.json(
       {
         success: false,
@@ -157,4 +88,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

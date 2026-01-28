@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 
 interface Message {
@@ -19,6 +19,7 @@ export default function MemoryPage() {
     }
   ]);
   const [inputValue, setInputValue] = useState('');
+  const chatMessagesRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -27,6 +28,13 @@ export default function MemoryPage() {
       msg.id === 1 ? { ...msg, timestamp: new Date() } : msg
     ));
   }, []);
+
+  // Auto-scroll to bottom when messages update
+  useEffect(() => {
+    if (chatMessagesRef.current) {
+      chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,7 +174,7 @@ export default function MemoryPage() {
             </div>
 
             {/* Chat Messages */}
-            <div className="h-96 overflow-y-auto p-6 space-y-4">
+            <div ref={chatMessagesRef} className="h-96 overflow-y-auto p-6 space-y-4">
               {messages.map((message) => (
                 <div
                   key={message.id}

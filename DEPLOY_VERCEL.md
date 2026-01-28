@@ -13,7 +13,7 @@ Quick guide to deploy your Memory Garden project on Vercel (free hosting).
 
 ```bash
 # Make sure you're in the project directory
-cd /Users/aket/Desktop/Memory-Garden-v0.5
+cd /Users/aket/Desktop/Memory-Garden-v1.0
 
 # Install dependencies
 npm install

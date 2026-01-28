@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { spawn } from 'child_process';
-import path from 'path';
+import Replicate from 'replicate';
+
+const replicate = new Replicate({
+  auth: process.env.REPLICATE_API_KEY,
+});
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,84 +16,49 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('Processing navigation chat with:', { message, conversationHistory });
+    const systemInstruction =
+      'You are Sprout, the Memory Garden assistant. Help users navigate the app, understand features, and answer questions about planting memories, viewing their garden, taking tours, and other features. Be friendly, helpful, and concise.';
 
-    // Execute Python script for Google AI
-    const pythonScript = path.join(process.cwd(), 'scripts', 'nav_chat_google_ai.py');
-    
-    // Use cross-platform Python detection
-    const pythonCommand = process.platform === 'win32' ? 'python' : 'python3';
-    
-    const pythonProcess = spawn(pythonCommand, [pythonScript, message, JSON.stringify(conversationHistory)], {
-      env: {
-        ...process.env,
-        PYTHONPATH: path.join(process.cwd(), 'scripts'),
-        PYTHONUNBUFFERED: '1'
-      },
-      cwd: path.join(process.cwd(), 'scripts')
-    });
+    let prompt = systemInstruction + '\n\n';
 
-    let pythonOutput = '';
-    let pythonError = '';
+    if (conversationHistory && Array.isArray(conversationHistory)) {
+      for (const msg of conversationHistory) {
+        if (!msg || !msg.content) continue;
+        const roleLabel = msg.role === 'assistant' ? 'Sprout' : 'User';
+        prompt += `${roleLabel}: ${msg.content}\n`;
+      }
+    }
 
-    pythonProcess.stdout.on('data', (data) => {
-      pythonOutput += data.toString();
-      console.log('Python stdout:', data.toString());
-    });
+    prompt += `User: ${message}\nSprout:`;
 
-    pythonProcess.stderr.on('data', (data) => {
-      pythonError += data.toString();
-      console.log('Python stderr:', data.toString());
-    });
-
-    return new Promise((resolve) => {
-      pythonProcess.on('close', (code) => {
-        console.log('Python process closed with code:', code);
-        console.log('Python output:', pythonOutput);
-        console.log('Python error output:', pythonError);
-
-        try {
-          // Try to parse the JSON response
-          const lines = pythonOutput.split('\n');
-          let jsonLine = '';
-          
-          for (const line of lines) {
-            if (line.trim().startsWith('{') && line.trim().endsWith('}')) {
-              jsonLine = line.trim();
-              break;
-            }
-          }
-
-          if (jsonLine) {
-            const result = JSON.parse(jsonLine);
-            console.log('Navigation chat result:', result);
-            resolve(NextResponse.json(result));
-          } else {
-            console.log('No valid JSON found in Python output');
-            resolve(NextResponse.json(
-              { 
-                success: false, 
-                error: 'Failed to parse Python output',
-                raw_output: pythonOutput,
-                timestamp: new Date().toISOString()
-              },
-              { status: 500 }
-            ));
-          }
-        } catch (error) {
-          console.log('Failed to parse Python output:', error);
-          resolve(NextResponse.json(
-            { 
-              success: false, 
-              error: 'Failed to parse Python output',
-              raw_output: pythonOutput,
-              timestamp: new Date().toISOString()
-            },
-            { status: 500 }
-          ));
-        }
+    try {
+      // Use Replicate SDK
+      const output = await replicate.run('openai/gpt-4o-mini', {
+        input: {
+          prompt,
+        },
       });
-    });
+
+      const aiText = Array.isArray(output) ? output.join('\n') : String(output);
+
+      return NextResponse.json({
+        success: true,
+        ai_response: aiText,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('Replicate navigation chat API error:', error);
+      return NextResponse.json(
+        { 
+          success: false,
+          error: 'Failed to get AI response',
+          details: error instanceof Error ? error.message : String(error),
+          timestamp: new Date().toISOString()
+        },
+        { status: 500 }
+      );
+    }
 
   } catch (error) {
     console.error('Error processing navigation chat:', error);
@@ -104,4 +72,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}
