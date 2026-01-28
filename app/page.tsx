@@ -142,6 +142,58 @@ export default function Home() {
                       return [];
                     };
 
+                    const demoLocale: Record<
+                      string,
+                      { titleZh: string; descriptionZh: string }
+                    > = {
+                      "Summer Beach Day": {
+                        titleZh: "夏日沙灘一日遊",
+                        descriptionZh:
+                          "同朋友喺沙灘度過完美一日，砌沙堡、曬太陽，充滿笑聲同陽光味道。",
+                      },
+                      "Family Birthday Celebration": {
+                        titleZh: "一家人嘅生日慶祝",
+                        descriptionZh:
+                          "全家人齊齊為嫲嫲／婆婆慶祝 80 大壽，屋企充滿笑聲同祝福。",
+                      },
+                      "Mountain Hiking Adventure": {
+                        titleZh: "山頂遠足小冒險",
+                        descriptionZh:
+                          "挑戰行上山頂，沿途風景壯麗，到達時有種完成咗一件大事嘅滿足感。",
+                      },
+                      "Anniversary Dinner": {
+                        titleZh: "紀念日浪漫晚餐",
+                        descriptionZh:
+                          "去到最鍾意嘅餐廳食一餐靚飯，一齊慶祝又走過一個年頭嘅陪伴同愛。",
+                      },
+                      "Work Project Launch": {
+                        titleZh: "工作項目正式起動",
+                        descriptionZh:
+                          "同成個團隊一齊成功推出年度最大型嘅項目，感受到團隊合作同成就感。",
+                      },
+                      "Weekend Road Trip": {
+                        titleZh: "週末公路小旅行",
+                        descriptionZh:
+                          "臨時決定去附近小鎮行下，發現咗唔少小店同咖啡店，充滿驚喜同自由感。",
+                      },
+                      "Art Gallery Opening": {
+                        titleZh: "藝術展開幕之夜",
+                        descriptionZh:
+                          "參加本地藝術家畫展開幕，被一幅幅畫同創作能量包圍，感受到靈感同藝術氣氛。",
+                      },
+                    };
+
+                    const categoryLocale: Record<string, string> = {
+                      family: "家庭",
+                      friends: "朋友",
+                      nature: "自然",
+                      achievement: "成就",
+                      travel: "旅行",
+                      love: "愛情",
+                      work: "工作",
+                      creativity: "創意",
+                    };
+
                     const getPreviewEmoji = (categories: string[]): string => {
                       const category = categories?.[0] || "";
                       if (category === "family") return "👨‍👩‍👧‍👦";
@@ -167,6 +219,25 @@ export default function Home() {
                             ? formatDateDDMMYYYY(stack.startDate)
                             : stack.vagueTime || "";
 
+                          const zh = demoLocale[stack.title];
+                          const displayTitle =
+                            language === "en" || !zh
+                              ? stack.title
+                              : zh.titleZh;
+                          const displayDescription =
+                            language === "en" || !zh
+                              ? stack.description
+                              : zh.descriptionZh;
+                          const itemsLabel =
+                            language === "en"
+                              ? `${stack.mediaFiles.length} items`
+                              : `${stack.mediaFiles.length} 個媒體`;
+                          const firstCategory = stack.categories[0];
+                          const categoryLabel =
+                            language === "en"
+                              ? firstCategory
+                              : categoryLocale[firstCategory] || firstCategory;
+
                           return (
                             <div
                               key={`memory-${index}`}
@@ -189,17 +260,19 @@ export default function Home() {
                               {/* Card Content */}
                               <div className="p-5">
                                 <div className="flex items-start justify-between mb-2">
-                                  <h3 className="text-lg font-bold text-gray-900 line-clamp-1">{stack.title}</h3>
+                                  <h3 className="text-lg font-bold text-gray-900 line-clamp-1">
+                                    {displayTitle}
+                                  </h3>
                                   <span className="text-xs text-gray-500 ml-2">{displayDate}</span>
                                 </div>
                                 <p className="text-sm text-gray-600 line-clamp-2 mb-3 leading-relaxed">
-                                  {stack.description}
+                                  {displayDescription}
                                 </p>
                                 <div className="flex items-center gap-2 text-xs text-gray-500">
-                                  <span>{stack.mediaFiles.length} items</span>
+                                  <span>{itemsLabel}</span>
                                   {stack.categories.length > 0 && (
                                     <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full">
-                                      {stack.categories[0]}
+                                      {categoryLabel}
                                     </span>
                                   )}
                                 </div>
