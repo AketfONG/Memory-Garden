@@ -323,7 +323,7 @@ export default function Navigation({
         
         <div className="flex items-center space-x-8">
           <Link href="/updates" className="md:hidden text-gray-600 hover:text-emerald-600 transition-all duration-200 ease-in-out font-medium">
-            v1.0
+            v1.0.1
           </Link>
           <button
             onClick={handleLangSwitch}
@@ -358,7 +358,7 @@ export default function Navigation({
         
         <div className="hidden md:flex items-center space-x-8">
           <Link href="/updates" className="text-gray-600 hover:text-emerald-600 transition-all duration-200 ease-in-out font-medium">
-            v1.0
+            v1.0.1
           </Link>
           <button
             onClick={handleLangSwitch}
