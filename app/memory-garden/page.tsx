@@ -386,10 +386,11 @@ export default function MemoryGarden() {
     }
   };
 
-  // Download the currently selected memory card as a PNG using a custom canvas
-  const handleDownloadCard = async () => {
+  // Download a memory card as a PNG. Pass memoryId to download that card; otherwise uses selected memory (detail view).
+  const handleDownloadCard = async (memoryId?: string) => {
     if (typeof window === "undefined") return;
-    if (!selectedMemory) {
+    const id = memoryId ?? selectedMemory;
+    if (!id) {
       alert(
         language === "en"
           ? "Please select a memory card to download."
@@ -398,7 +399,7 @@ export default function MemoryGarden() {
       return;
     }
 
-    const memory = memoryCards.find((m) => m.id === selectedMemory);
+    const memory = memoryCards.find((m) => m.id === id);
     if (!memory) {
       alert(
         language === "en"
@@ -1370,7 +1371,7 @@ Focus on people, objects, and environment that best represent this specific memo
                               onClick={(e) => {
                                 e.stopPropagation();
                                 if (!memory.id.startsWith("demo-")) {
-                                  handleDownloadCard();
+                                  handleDownloadCard(memory.id);
                                 }
                               }}
                               disabled={memory.id.startsWith("demo-")}
@@ -1502,6 +1503,24 @@ Focus on people, objects, and environment that best represent this specific memo
 
                               {/* Action buttons */}
                               <div className="flex justify-end gap-2 mt-3">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (!memory.id.startsWith("demo-")) {
+                                      handleDownloadCard(memory.id);
+                                    }
+                                  }}
+                                  disabled={memory.id.startsWith("demo-")}
+                                  className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium shadow transition-all duration-300 ${
+                                    memory.id.startsWith("demo-")
+                                      ? "bg-gray-200 text-gray-400 cursor-not-allowed opacity-60"
+                                      : "bg-gradient-to-b from-emerald-500 to-green-600 text-white hover:shadow-lg hover:scale-105"
+                                  }`}
+                                  title={language === "en" ? "Download Card" : "下載記憶卡"}
+                                >
+                                  <span>📥</span>
+                                </button>
                                 <button
                                   type="button"
                                   onClick={(e) => {

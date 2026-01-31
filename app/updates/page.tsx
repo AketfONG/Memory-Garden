@@ -153,6 +153,12 @@ export default function UpdatesPage() {
                           <li className="flex items-start">
                             <span className="text-emerald-500 mr-3">•</span>
                             {language === "en"
+                              ? "Improved Memory Card Download and mobile experiences"
+                              : "改進記憶卡下載同手機體驗"}
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-emerald-500 mr-3">•</span>
+                            {language === "en"
                               ? "Scrolling Optimization and Bug Fixes"
                               : "滾動優化同錯誤修復"}
                           </li>
