@@ -238,12 +238,12 @@ export default function MemoryStacks() {
       />
 
       {/* Main Content */}
-      <main className="flex-1 overflow-hidden pt-16">
-        <div className="h-full w-full px-8 py-8">
-          <div className="h-full w-full min-h-0">
-            <div className="grid lg:grid-cols-2 gap-12 h-full w-full min-h-0">
+      <main className="flex-1 min-h-0 pt-16 overflow-y-auto" data-nav-scroll-root>
+        <div className="w-full px-8 py-8">
+          <div className="w-full">
+            <div className="grid lg:grid-cols-2 gap-12 w-full">
               {/* Left Column - Memory Stacks */}
-              <div className="flex flex-col h-full min-h-0">
+              <div className="flex flex-col">
                 <div className="mb-8">
                   <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
                     {language === "en" ? "Your Memory Stacks" : "你嘅記憶堆疊"}
@@ -359,7 +359,7 @@ export default function MemoryStacks() {
               </div>
 
               {/* Right Column - Actions */}
-              <div className="flex flex-col min-h-[420px] lg:h-full lg:min-h-0">
+              <div className="flex flex-col min-h-[420px]">
                 {/* Choose Stack Option */}
                 <div
                   className={`relative rounded-[2rem] p-6 lg:p-10 mb-6 border-2 transition-all duration-300 ${

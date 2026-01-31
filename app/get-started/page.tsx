@@ -507,12 +507,12 @@ Do NOT include any extra keys or text outside the JSON.
       />
 
       {/* Main Content */}
-      <main className="flex-1 pt-16 lg:overflow-hidden">
-        <div className="w-full px-8 py-8 lg:h-full">
-          <div className="w-full lg:h-full">
-            <div className="grid lg:grid-cols-2 gap-12 w-full lg:h-full">
+      <main className="flex-1 pt-16 min-h-0 lg:overflow-y-auto" data-nav-scroll-root>
+        <div className="w-full px-8 py-8">
+          <div className="w-full">
+            <div className="grid lg:grid-cols-2 gap-12 w-full">
               {/* Left Column - Upload Area */}
-              <div className="flex flex-col lg:h-full">
+              <div className="flex flex-col">
                 <div className="mb-8">
                   <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
                     {language === "en" ? "Import Your Memories" : "匯入你嘅回憶"}
@@ -595,7 +595,7 @@ Do NOT include any extra keys or text outside the JSON.
               </div>
 
               {/* Right Column - Information */}
-              <div className="flex flex-col lg:h-full">
+              <div className="flex flex-col">
                 {/* How It Works */}
                 <div className="hidden lg:block bg-gradient-to-br from-emerald-50 to-green-50 rounded-[2rem] p-8 mb-10 border-2 border-emerald-100">
                   <h3 className="text-3xl font-bold text-gray-900 mb-8">

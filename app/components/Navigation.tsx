@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useLanguage } from "../contexts/LanguageContext";
 import { translations } from "../translations";
 
@@ -35,8 +36,9 @@ export default function Navigation({
   fullWidth = false,
   primaryAction
 }: NavigationProps) {
-  const [isScrolled, setIsScrolled] = useState(false);
+  const pathname = usePathname();
   const { language, setLanguage } = useLanguage();
+  const [isScrolled, setIsScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [menuAnimating, setMenuAnimating] = useState('none');
   const [showAIPopup, setShowAIPopup] = useState(false);
@@ -44,6 +46,7 @@ export default function Navigation({
   const [aiMessage, setAiMessage] = useState('');
   const [popupMessages, setPopupMessages] = useState<PopupMessage[]>([]);
   const menuRef = useRef<HTMLDivElement>(null);
+  const scrollRootRef = useRef<Element | null>(null);
   const handleLangSwitch = () => {
     if (typeof window !== 'undefined') {
       const message =
@@ -168,16 +171,6 @@ export default function Navigation({
   };
 
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollTop = window.scrollY;
-      setIsScrolled(scrollTop > 0);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  useEffect(() => {
     if (!NAV_CHAT_ENABLED || !(showAIPopup || aiPopupAnimating === 'out')) return;
     function handle(e: MouseEvent) {
       if (!(e.target as HTMLElement).closest('.speech-bubble') && !(e.target as HTMLElement).closest('[aria-label="Open Memory Garden AI"]')) {
@@ -215,10 +208,39 @@ export default function Navigation({
     };
   }, [showAIPopup, aiPopupAnimating]);
 
+  // Show nav shadow when content is scrolled (window or page scroll container)
+  useEffect(() => {
+    const updateScrolled = () => {
+      const windowScrolled = typeof window !== "undefined" && window.scrollY > 0;
+      const root = scrollRootRef.current;
+      const containerScrolled = root ? (root as HTMLElement).scrollTop > 0 : false;
+      setIsScrolled(windowScrolled || containerScrolled);
+    };
+    updateScrolled();
+    window.addEventListener("scroll", updateScrolled, { passive: true });
+
+    const attachScrollRoot = () => {
+      const el = document.querySelector("[data-nav-scroll-root]");
+      if (el && el !== scrollRootRef.current) {
+        scrollRootRef.current?.removeEventListener("scroll", updateScrolled);
+        el.addEventListener("scroll", updateScrolled, { passive: true });
+        scrollRootRef.current = el;
+        updateScrolled();
+      }
+    };
+    attachScrollRoot();
+    const t = setTimeout(attachScrollRoot, 250);
+
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("scroll", updateScrolled);
+      scrollRootRef.current?.removeEventListener("scroll", updateScrolled);
+      scrollRootRef.current = null;
+    };
+  }, [pathname]);
+
   return (
-    <header className={`fixed top-0 left-0 right-0 bg-white bg-opacity-95 backdrop-blur-md z-50 w-full transition-shadow duration-300 ${
-      isScrolled ? 'shadow-lg' : ''
-    }`}>
+    <header className={`fixed top-0 left-0 right-0 bg-white bg-opacity-95 backdrop-blur-md z-50 w-full transition-shadow duration-300 ${isScrolled ? "shadow-lg" : ""}`}>
       <nav className={`flex items-center justify-between px-6 py-4 h-16 w-full`}>
         <div className="flex items-center space-x-5 relative z-50">
           <Link href="/">

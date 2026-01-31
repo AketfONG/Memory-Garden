@@ -1373,12 +1373,12 @@ Rules:
       />
 
       {/* Main Content */}
-      <main className="flex-1 overflow-hidden pt-16">
-        <div className="h-full w-full px-8 py-8">
-          <div className="h-full w-full">
-            <div className="grid lg:grid-cols-2 gap-12 h-full w-full">
-              {/* Left Column - Voice Input */}
-              <div className="hidden lg:flex flex-col h-full">
+      <main className="flex-1 min-h-0 pt-16 overflow-y-auto lg:overflow-hidden">
+        <div className="w-full h-full min-h-0 px-8 py-8 lg:h-full">
+          <div className="w-full h-full min-h-0 lg:h-full">
+            <div className="grid lg:grid-cols-2 gap-12 w-full h-full min-h-0 lg:h-full">
+              {/* Left Column - Voice Input (scrolls internally on lg; nav shadow via data-nav-scroll-root) */}
+              <div className="hidden lg:flex flex-col lg:h-full min-h-0 overflow-y-auto pr-2" data-nav-scroll-root>
                 <div className="mb-8">
                   <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
                     {getPageTitle()}
@@ -1634,7 +1634,7 @@ Rules:
               </div>
 
               {/* Right Column - Transcription */}
-              <div className="flex flex-col h-full min-h-0">
+              <div className="flex flex-col lg:h-full min-h-0">
                 <div className="hidden lg:flex mb-8 flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div>
                     <h2 className="text-3xl font-bold text-gray-900 mb-2">
@@ -1663,7 +1663,7 @@ Rules:
                 </div>
 
                 {/* Transcription Display */}
-                <div className="flex-1 bg-white rounded-[2rem] shadow-xl border-2 border-emerald-100 overflow-hidden mb-6 flex flex-col">
+                <div className="flex-1 min-h-0 bg-white rounded-[2rem] shadow-xl border-2 border-emerald-100 overflow-hidden mb-6 flex flex-col">
                   {/* Chat Header */}
                   <div className="bg-white p-6 flex-shrink-0">
                     <div className="flex items-center space-x-3">

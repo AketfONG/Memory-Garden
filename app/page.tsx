@@ -30,7 +30,7 @@ export default function Home() {
   const t = translations[language];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
       <Navigation
         fullWidth={true}
@@ -41,8 +41,8 @@ export default function Home() {
         }}
       />
 
-      {/* Hero Section */}
-      <main className="pt-26">
+      {/* Main content – scrolls like get-started; nav stays fixed and shows shadow when scrolled */}
+      <main className="flex-1 min-h-0 pt-16 overflow-y-auto" data-nav-scroll-root>
         <div className="container mx-auto px-6 py-16">
           {/* Hero */}
           <div className="max-w-7xl mx-auto mb-20">
@@ -86,18 +86,23 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Sample Memory Cards */}
-          <div className="w-full mb-20 py-12 -mx-6 px-6">
-            <div className="w-full">
-              <div className="marquee relative overflow-hidden">
-                <div
-                  className="pointer-events-none absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-white via-white to-transparent z-10"
-                  aria-hidden="true"
-                />
-                <div
-                  className="pointer-events-none absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-white via-white to-transparent z-10"
-                  aria-hidden="true"
-                />
+          {/* Sample Memory Cards – full bleed to window edge, shadow at edges */}
+          <div className="w-screen max-w-none relative left-1/2 -translate-x-1/2 mb-20 py-12">
+            <div className="marquee relative overflow-hidden">
+              <div
+                className="pointer-events-none absolute inset-y-0 left-0 w-20 sm:w-28 z-10"
+                style={{
+                  background: "linear-gradient(to right, #ffffff 0%, rgba(255,255,255,0.98) 15%, rgba(255,255,255,0.85) 40%, rgba(255,255,255,0.5) 70%, transparent 100%)",
+                }}
+                aria-hidden="true"
+              />
+              <div
+                className="pointer-events-none absolute inset-y-0 right-0 w-20 sm:w-28 z-10"
+                style={{
+                  background: "linear-gradient(to left, #ffffff 0%, rgba(255,255,255,0.98) 15%, rgba(255,255,255,0.85) 40%, rgba(255,255,255,0.5) 70%, transparent 100%)",
+                }}
+                aria-hidden="true"
+              />
 
                 <div className="py-4">
                 <div className="flex flex-col gap-6">
@@ -285,7 +290,6 @@ export default function Home() {
                   })()}
                 </div>
               </div>
-            </div>
             </div>
           </div>
 
@@ -838,31 +842,31 @@ The more stories they shared, the more connected they felt. That's an experience
             </div>
           </div>
         </div>
-      </main>
 
-      {/* Footer */}
-      <footer className="border-t-2 border-gray-200 py-12">
-        <div className="container mx-auto px-6">
-          <div className="text-center">
-            <div className="flex items-center justify-center space-x-3 mb-4">
-              <span className="text-2xl">🌱</span>
-              <span className="text-xl font-semibold text-gray-800">
-                {translations[language].navigation.memoryGarden}
-              </span>
+        {/* Footer */}
+        <footer className="border-t-2 border-gray-200 py-12">
+          <div className="container mx-auto px-6">
+            <div className="text-center">
+              <div className="flex items-center justify-center space-x-3 mb-4">
+                <span className="text-2xl">🌱</span>
+                <span className="text-xl font-semibold text-gray-800">
+                  {translations[language].navigation.memoryGarden}
+                </span>
+              </div>
+              <p className="text-gray-600 mb-2">
+                {language === "en"
+                  ? "Bridging emotional support gaps through voice-first memory storytelling."
+                  : "用聲音同故事，為香港人搭起情感支持同連結嘅橋樑。"}
+              </p>
+              <p className="text-sm text-gray-500 mt-4">
+                {language === "en"
+                  ? "© 2026 Memory Garden. Built with care for Hong Kong families."
+                  : "© 2026 記憶花園。用心為香港家庭打造。"}
+              </p>
             </div>
-            <p className="text-gray-600 mb-2">
-              {language === "en"
-                ? "Bridging emotional support gaps through voice-first memory storytelling."
-                : "用聲音同故事，為香港人搭起情感支持同連結嘅橋樑。"}
-            </p>
-            <p className="text-sm text-gray-500 mt-4">
-              {language === "en"
-                ? "© 2026 Memory Garden. Built with care for Hong Kong families."
-                : "© 2026 記憶花園。用心為香港家庭打造。"}
-            </p>
           </div>
-        </div>
-      </footer>
+        </footer>
+      </main>
     </div>
   );
 }

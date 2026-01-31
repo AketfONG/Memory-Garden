@@ -1540,10 +1540,43 @@ Focus on people, objects, and environment that best represent this specific memo
                     </div>
                   )}
                 </div>
+
+                {/* One-column: action buttons below list */}
+                <div className="lg:hidden flex gap-4 mt-6 pb-4">
+                  <Link
+                    href="/memory-stacks"
+                    className="flex-1 text-center border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-6 py-4 rounded-full text-base font-semibold transition-all duration-300"
+                  >
+                    {language === "en" ? "Back" : "返回堆疊"}
+                  </Link>
+                  <Link
+                    href="/"
+                    className="flex-1 text-center bg-gradient-to-b from-emerald-500 to-green-600 text-white px-6 py-4 rounded-full text-base font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+                  >
+                    {language === "en" ? "Back to Home" : "返回首頁"}
+                  </Link>
+                </div>
               </div>
 
-              {/* Right Column - Memory Details */}
-              <div className="flex flex-col h-full min-h-0">
+              {/* Right Column - Memory Details; on one-column becomes full-screen overlay when a card is selected */}
+              <div
+                className={`flex flex-col min-h-0 ${
+                  selectedMemory
+                    ? "fixed inset-0 z-40 bg-white overflow-y-auto pt-16 pb-8 px-4 lg:static lg:z-auto lg:overflow-visible lg:pt-0 lg:pb-0 lg:px-0"
+                    : "hidden"
+                } lg:!flex lg:h-full`}
+              >
+                {/* One-column: back to list button */}
+                {selectedMemory && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedMemory(null)}
+                    className="lg:hidden w-fit self-start inline-flex items-center justify-center gap-2 px-6 py-3 bg-emerald-100 text-emerald-700 rounded-full font-medium hover:bg-emerald-200 transition-all duration-300 ease-in-out mb-4"
+                  >
+                    <span aria-hidden>◀</span>
+                    {language === "en" ? "Back to list" : "返回列表"}
+                  </button>
+                )}
                 {selectedMemory ? (
                   <div className="flex-1 flex flex-col min-h-0 mb-6">
                     {(() => {
@@ -1553,10 +1586,10 @@ Focus on people, objects, and environment that best represent this specific memo
                       return (
                         <div
                           ref={detailCardRef}
-                          className="flex-1 bg-emerald-50 rounded-[2rem] p-6 shadow-lg border-2 border-emerald-100 flex flex-col min-h-0"
+                          className="flex-1 min-h-[380px] bg-emerald-50 rounded-[2rem] p-6 shadow-lg border-2 border-emerald-100 flex flex-col min-h-0"
                         >
-                          {/* Image Section - fixed height to fill available space (solid soft green) */}
-                          <div className="flex-1 min-h-0 bg-green-100 rounded-xl flex items-center justify-center overflow-hidden mb-4">
+                          {/* Image Section - min height so Add Media / Generate buttons always visible on mobile */}
+                          <div className="flex-1 min-h-[220px] bg-green-100 rounded-xl flex items-center justify-center overflow-hidden mb-4">
                             {(() => {
                               const images = detailViewImages[memory.id] || [];
                               if (images.length > 0) {
@@ -1761,15 +1794,15 @@ Focus on people, objects, and environment that best represent this specific memo
                               } else {
                                 // No images yet: show Style 4-inspired Add Media + Generate Image buttons inside the green area
                                 return (
-                                  <div className="w-full h-full flex flex-col items-center justify-center gap-4 px-4 text-center">
-                                    <div className="space-y-2">
+                                  <div className="w-full h-full min-h-[220px] flex flex-col items-center justify-center gap-4 px-4 text-center">
+                                    <div className="space-y-2 flex-shrink-0">
                                       <p className="text-sm text-gray-700 font-medium">
                                         {language === "en"
                                           ? "Add a photo or let AI paint this memory for you."
                                           : "可以自己加一張相，或者交畀 AI 幫你畫出呢段回憶。"}
                                       </p>
                                     </div>
-                                    <div className="flex flex-wrap items-center justify-center gap-3">
+                                    <div className="flex flex-wrap items-center justify-center gap-3 flex-shrink-0">
                                       {/* Add Media (opens file picker) */}
                                       <button
                                         type="button"

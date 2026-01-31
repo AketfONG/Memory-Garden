@@ -127,8 +127,48 @@ export default function UpdatesPage() {
               {/* Right Column - Version Logs */}
               <div className="flex flex-col min-h-0">
                 <div className="flex-1 overflow-y-auto pr-1 space-y-8 min-h-0">
-                  {/* Version v1.0 */}
+                  {/* Version v1.0.1 - Latest */}
                   <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-[2rem] p-8 border-2 border-emerald-100">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center space-x-4">
+                        <span className="text-3xl">🌱</span>
+                        <div>
+                          <h2 className="text-2xl font-bold text-gray-800">
+                            {t.updates.version} 1.0.1
+                          </h2>
+                          <p className="text-emerald-600 font-medium">
+                            {t.updates.latestVersion}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-6">
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                          <span className="text-emerald-500 mr-2">🎨</span>
+                          {t.updates.improvements}
+                        </h3>
+                        <ul className="space-y-2 text-gray-600">
+                          <li className="flex items-start">
+                            <span className="text-emerald-500 mr-3">•</span>
+                            {language === "en"
+                              ? "Scrolling Optimization and Bug Fixes"
+                              : "滾動優化同錯誤修復"}
+                          </li>
+                        </ul>
+                      </div>
+
+                      <div className="bg-emerald-100 rounded-full p-4">
+                        <p className="text-emerald-700 text-sm">
+                          <strong>{t.updates.releaseDate}:</strong> 31/01/2026
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Version v1.0 - Previous */}
+                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-[2rem] p-8 border-2 border-gray-200">
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center space-x-4">
                         <span className="text-3xl">🌱</span>
@@ -136,8 +176,8 @@ export default function UpdatesPage() {
                           <h2 className="text-2xl font-bold text-gray-800">
                             {t.updates.version} 1.0
                           </h2>
-                          <p className="text-emerald-600 font-medium">
-                            {t.updates.latestVersion}
+                          <p className="text-gray-500 font-medium">
+                            {t.updates.previousVersion}
                           </p>
                         </div>
                       </div>
@@ -202,9 +242,23 @@ export default function UpdatesPage() {
                           </li>
                         </ul>
                       </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                          <span className="text-gray-500 mr-2">📝</span>
+                          {t.updates.notes}
+                        </h3>
+                        <ul className="space-y-2 text-gray-600">
+                          <li className="flex items-start">
+                            <span className="text-gray-500 mr-3">•</span>
+                            {language === "en"
+                              ? "Removed Legacy Pages"
+                              : "移除舊版頁面"}
+                          </li>
+                        </ul>
+                      </div>
 
-                      <div className="bg-emerald-100 rounded-full p-4">
-                        <p className="text-emerald-700 text-sm">
+                      <div className="bg-gray-200 rounded-full p-4">
+                        <p className="text-gray-700 text-sm">
                           <strong>{t.updates.releaseDate}:</strong> 29/01/2026
                         </p>
                       </div>
@@ -297,7 +351,7 @@ export default function UpdatesPage() {
 
                       <div className="bg-gray-200 rounded-full p-4">
                         <p className="text-gray-700 text-sm">
-                          <strong>{t.updates.releaseDate}:</strong> 25/11/2026
+                          <strong>{t.updates.releaseDate}:</strong> 25/11/2025
                         </p>
                       </div>
                     </div>
@@ -362,7 +416,7 @@ export default function UpdatesPage() {
 
                       <div className="bg-gray-200 rounded-full p-4">
                         <p className="text-gray-700 text-sm">
-                          <strong>{t.updates.releaseDate}:</strong> 23/08/2026
+                          <strong>{t.updates.releaseDate}:</strong> 23/08/2025
                         </p>
                       </div>
                     </div>
@@ -429,7 +483,7 @@ export default function UpdatesPage() {
 
                       <div className="bg-gray-200 rounded-full p-4">
                         <p className="text-gray-700 text-sm">
-                          <strong>{t.updates.releaseDate}:</strong> 13/07/2026
+                          <strong>{t.updates.releaseDate}:</strong> 13/07/2025
                         </p>
                       </div>
                     </div>
@@ -539,7 +593,7 @@ export default function UpdatesPage() {
 
                       <div className="bg-gray-200 rounded-full p-4">
                         <p className="text-gray-700 text-sm">
-                          <strong>{t.updates.releaseDate}:</strong> 28/06/2026
+                          <strong>{t.updates.releaseDate}:</strong> 28/06/2025
                         </p>
                       </div>
                     </div>
@@ -579,7 +633,7 @@ export default function UpdatesPage() {
 
                       <div className="bg-gray-200 rounded-full p-4">
                         <p className="text-gray-700 text-sm">
-                          <strong>{t.updates.releaseDate}:</strong> 27/06/2026
+                          <strong>{t.updates.releaseDate}:</strong> 27/06/2025
                         </p>
                       </div>
                     </div>

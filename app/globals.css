@@ -61,21 +61,21 @@
   }
 }
 
-html, body {
-  /* Remove overflow: hidden to allow scrolling */
+html,
+body {
+  /* Overscroll area: always light so rubber-band never shows black (e.g. on landing) */
+  background-color: #ffffff;
 }
 
 html {
-  background: #ffffff;
-  overscroll-behavior: none;
+  overscroll-behavior: auto;
 }
 
 body {
-  background: var(--background);
   color: var(--foreground);
   font-family: "Helvetica Neue", Helvetica, Arial, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   min-height: 100vh;
-  overscroll-behavior: none;
+  overscroll-behavior: auto;
 }
 
 /* Prevent black background during overscroll on mobile */
