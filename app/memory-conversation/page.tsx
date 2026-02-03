@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef, Suspense } from "react";
 import Navigation from "../components/Navigation";
+import FloatingProgressBar from "../components/FloatingProgressBar";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { memoryStorage, type SavedMemory, type MemoryMessage } from "../utils/memoryStorage";
@@ -42,6 +43,7 @@ function MemoryConversationInner() {
   const searchParams = useSearchParams();
   const type = searchParams.get("type") || "stack"; // stack, random, new
   const stackId = searchParams.get("stack");
+  const flow = searchParams.get("flow"); // story-summary | ai-journal (for type=new)
   const { language } = useLanguage();
   const [languageReady, setLanguageReady] = useState(false);
   const [isListening, setIsListening] = useState(false);
@@ -1370,7 +1372,17 @@ Rules:
           href: "/",
           variant: "secondary",
         }}
+        progressFlow={type === "new" && flow !== "story-summary" ? "ai-journal" : "story-summary"}
+        progressStep={type === "new" && flow !== "story-summary" ? 0 : 2}
       />
+
+      <div className="lg:hidden">
+        {type === "new" && flow !== "story-summary" ? (
+          <FloatingProgressBar flow="ai-journal" currentStep={0} />
+        ) : (
+          <FloatingProgressBar flow="story-summary" currentStep={2} />
+        )}
+      </div>
 
       {/* Main Content */}
       <main className="flex-1 min-h-0 pt-16 overflow-y-auto lg:overflow-hidden">

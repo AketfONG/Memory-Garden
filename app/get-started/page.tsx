@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Navigation from "../components/Navigation";
+import FloatingProgressBar from "../components/FloatingProgressBar";
 import Link from "next/link";
 import { stackStorage } from "../utils/stackStorage";
 import { useLanguage } from "../contexts/LanguageContext";
@@ -483,7 +484,7 @@ Do NOT include any extra keys or text outside the JSON.
   if (!mounted) {
     return (
       <div className="min-h-screen lg:h-screen bg-white flex flex-col overflow-y-auto lg:overflow-hidden">
-        <Navigation fullWidth={true} primaryAction={{ text: "Back to Home", href: "/", variant: "secondary" }} />
+        <Navigation fullWidth={true} primaryAction={{ text: "Back to Home", href: "/", variant: "secondary" }} progressFlow="story-summary" progressStep={0} />
         <main className="flex-1 pt-16 lg:overflow-hidden flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto mb-4"></div>
@@ -504,16 +505,22 @@ Do NOT include any extra keys or text outside the JSON.
           href: "/",
           variant: "secondary",
         }}
+        progressFlow="story-summary"
+        progressStep={0}
       />
 
+      <div className="lg:hidden">
+        <FloatingProgressBar flow="story-summary" currentStep={0} />
+      </div>
+
       {/* Main Content */}
-      <main className="flex-1 pt-16 min-h-0 lg:overflow-y-auto" data-nav-scroll-root>
-        <div className="w-full px-8 py-8">
-          <div className="w-full">
-            <div className="grid lg:grid-cols-2 gap-12 w-full">
+      <main className="flex-1 pt-16 min-h-0 lg:overflow-y-auto flex flex-col" data-nav-scroll-root>
+        <div className="w-full px-8 py-8 flex-1 flex flex-col min-h-0">
+          <div className="w-full flex-1 flex flex-col min-h-0">
+            <div className="grid lg:grid-cols-2 gap-12 w-full flex-1 min-h-0 lg:items-stretch">
               {/* Left Column - Upload Area */}
-              <div className="flex flex-col">
-                <div className="mb-8">
+              <div className="flex flex-col min-h-0">
+                <div className="mb-8 flex-shrink-0">
                   <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
                     {language === "en" ? "Import Your Memories" : "匯入你嘅回憶"}
                   </h1>
@@ -524,9 +531,9 @@ Do NOT include any extra keys or text outside the JSON.
                   </p>
                 </div>
 
-                {/* Upload Area */}
+                {/* Upload Area - fills remaining height in 2-col mode */}
                 <div
-                  className={`border-2 border-dashed rounded-[2rem] p-12 transition-all duration-300 flex-1 flex items-center justify-center ${
+                  className={`border-2 border-dashed rounded-[2rem] p-12 transition-all duration-300 flex-1 flex items-center justify-center min-h-0 ${
                     dragActive
                       ? "border-emerald-500 bg-emerald-50"
                       : "border-gray-300 bg-gray-50 hover:border-emerald-400 hover:bg-emerald-50/50"
@@ -555,10 +562,13 @@ Do NOT include any extra keys or text outside the JSON.
                     </label>
                   </div>
                 </div>
+              </div>
 
-                {/* Media Type Descriptions */}
-                <div className="mt-6 hidden lg:grid lg:grid-cols-3 gap-5">
-                  <div className="bg-white rounded-[2rem] p-8 border-2 border-gray-200 text-center">
+              {/* Right Column - Information + Photos/Videos/Audio blocks on lg */}
+              <div className="flex flex-col">
+                {/* Media Type Descriptions - right column on lg, hidden on mobile (unchanged) */}
+                <div className="hidden lg:grid lg:grid-cols-3 gap-5 mb-8">
+                  <div className="bg-white rounded-[2rem] p-8 border-2 border-gray-200 text-center aspect-square flex flex-col items-center justify-center min-w-0">
                     <div className="text-5xl mb-4">🖼️</div>
                     <h4 className="font-semibold text-gray-900 mb-2 text-base">
                       {language === "en" ? "Photos" : "相片"}
@@ -567,7 +577,7 @@ Do NOT include any extra keys or text outside the JSON.
                       {language === "en" ? "By people & places" : "以人物、地點分類"}
                     </p>
                   </div>
-                  <div className="bg-white rounded-[2rem] p-8 border-2 border-gray-200 text-center">
+                  <div className="bg-white rounded-[2rem] p-8 border-2 border-gray-200 text-center aspect-square flex flex-col items-center justify-center min-w-0">
                     <div className="text-5xl mb-4">🎥</div>
                     <h4 className="font-semibold text-gray-900 mb-2 text-base">
                       {language === "en" ? "Videos" : "影片"}
@@ -579,7 +589,7 @@ Do NOT include any extra keys or text outside the JSON.
                       {language === "en" ? "Coming Soon" : "即將推出"}
                     </p>
                   </div>
-                  <div className="bg-white rounded-[2rem] p-8 border-2 border-gray-200 text-center">
+                  <div className="bg-white rounded-[2rem] p-8 border-2 border-gray-200 text-center aspect-square flex flex-col items-center justify-center min-w-0">
                     <div className="text-5xl mb-4">🎤</div>
                     <h4 className="font-semibold text-gray-900 mb-2 text-base">
                       {language === "en" ? "Audio" : "聲音"}
@@ -590,57 +600,6 @@ Do NOT include any extra keys or text outside the JSON.
                     <p className="text-xs text-emerald-600 font-medium mt-2">
                       {language === "en" ? "Coming Soon" : "即將推出"}
                     </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column - Information */}
-              <div className="flex flex-col">
-                {/* How It Works */}
-                <div className="hidden lg:block bg-gradient-to-br from-emerald-50 to-green-50 rounded-[2rem] p-8 mb-10 border-2 border-emerald-100">
-                  <h3 className="text-3xl font-bold text-gray-900 mb-8">
-                    {language === "en" ? "How AI Organizes Your Memories" : "AI 點樣幫你整理回憶"}
-                  </h3>
-                  <div className="space-y-6">
-                    <div className="flex items-start">
-                      <div className="bg-gradient-to-b from-emerald-500 to-green-600 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg mr-5 flex-shrink-0 shadow-lg">1</div>
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 mb-2 text-lg">
-                          {language === "en" ? "Context Analysis" : "理解相背後嘅情境"}
-                        </h4>
-                        <p className="text-gray-600 text-base leading-relaxed">
-                          {language === "en"
-                            ? "AI analyzes the content of your photos to understand the context, people, places, and events. Video and audio summarization coming soon."
-                            : "AI 會分析你嘅相片內容，理解入面嘅人物、地方同事情背景。影片同聲音摘要功能將會陸續加入。"}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-start">
-                      <div className="bg-gradient-to-b from-emerald-500 to-green-600 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg mr-5 flex-shrink-0 shadow-lg">2</div>
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 mb-2 text-lg">
-                          {language === "en" ? "Timeline Organization" : "按照時間線自動排好"}
-                        </h4>
-                        <p className="text-gray-600 text-base leading-relaxed">
-                          {language === "en"
-                            ? "Files are automatically organized chronologically based on metadata, content analysis, and context clues."
-                            : "系統會根據檔案資料、內容分析同上下文線索，自動按時間順序幫你排好檔案。"}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-start">
-                      <div className="bg-gradient-to-b from-emerald-500 to-green-600 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg mr-5 flex-shrink-0 shadow-lg">3</div>
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 mb-2 text-lg">
-                          {language === "en" ? "Story Creation" : "將片段連結成故事"}
-                        </h4>
-                        <p className="text-gray-600 text-base leading-relaxed">
-                          {language === "en"
-                            ? "Related memories are grouped together to create coherent stories and memory cards that you can revisit and share."
-                            : "會將相關嘅回憶串連起嚟，變成有脈絡嘅故事同記憶卡，方便你之後重溫同分享。"}
-                        </p>
-                      </div>
-                    </div>
                   </div>
                 </div>
 
@@ -687,9 +646,9 @@ Do NOT include any extra keys or text outside the JSON.
                       ? "Uploaded files will appear here"
                       : "已匯入嘅檔案會顯示喺呢度"}
                   </p>
-                  <div className="bg-gray-50 rounded-[2rem] p-4 border-2 border-gray-200 min-h-[120px]">
+                  <div className="bg-gray-50 rounded-[2rem] p-4 border-2 border-gray-200 h-[13rem] flex flex-col">
                     {[...imageFiles, ...videoFiles, ...audioFiles].length > 0 ? (
-                      <div className="flex gap-4 overflow-x-auto pb-2">
+                      <div className="flex gap-4 overflow-x-auto overflow-y-hidden flex-1 min-h-0 min-w-0">
                         {[...imageFiles, ...videoFiles, ...audioFiles].map((file, idx) => {
                           let fileType: 'image' | 'video' | 'audio';
                           let deleteIndex: number;
@@ -764,7 +723,7 @@ Do NOT include any extra keys or text outside the JSON.
                         })}
                       </div>
                     ) : (
-                      <div className="flex items-center justify-center min-h-[120px] pt-4">
+                      <div className="flex items-center justify-center flex-1 min-h-0">
                         <p className="text-gray-500 text-sm text-center">
                           {language === "en" ? "No files uploaded yet" : "仲未有匯入任何檔案"}
                         </p>
@@ -776,10 +735,10 @@ Do NOT include any extra keys or text outside the JSON.
                 {/* Action Buttons - Pushed to bottom */}
                 <div className="mt-auto flex gap-5">
                   <Link
-                    href="/"
+                    href="/story-summary-intro"
                     className="flex-1 text-center border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-5 rounded-full text-lg font-semibold transition-all duration-300"
                   >
-                    {language === "en" ? "Back to Home" : "返回首頁"}
+                    {language === "en" ? "Back" : "返回"}
                   </Link>
                   <button
                     type="button"

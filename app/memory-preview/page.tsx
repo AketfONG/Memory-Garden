@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Navigation from "../components/Navigation";
+import FloatingProgressBar from "../components/FloatingProgressBar";
 import { memoryStorage, MemoryMessage } from "../utils/memoryStorage";
 
 function MemoryPreviewPageInner() {
@@ -125,7 +126,7 @@ function MemoryPreviewPageInner() {
   if (!mounted || !memoryData) {
     return (
       <div className="min-h-screen bg-white">
-        <Navigation showBackButton={true} />
+        <Navigation showBackButton={true} progressFlow="story-summary" progressStep={3} />
         <main className="pt-26">
           <div className="container mx-auto px-6 py-16">
             <div className="max-w-4xl mx-auto">
@@ -142,8 +143,12 @@ function MemoryPreviewPageInner() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Navigation showBackButton={true} backButtonText="Back to Garden" backButtonHref="/garden" />
-      
+      <Navigation showBackButton={true} backButtonText="Back to Garden" backButtonHref="/garden" progressFlow="story-summary" progressStep={3} />
+
+      <div className="lg:hidden">
+        <FloatingProgressBar flow="story-summary" currentStep={3} />
+      </div>
+
       <main className="pt-26">
         <div className="container mx-auto px-6 py-16">
           <div className="max-w-4xl mx-auto">

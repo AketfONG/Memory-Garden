@@ -37,11 +37,12 @@ export default function MemoryGarden() {
   const { language } = useLanguage();
   const [selectedMemory, setSelectedMemory] = useState<string | null>(null);
   const [memoryCards, setMemoryCards] = useState<MemoryCardData[]>([]);
-  const [viewMode, setViewMode] = useState<"list" | "timeline">("list");
+  const [viewMode, setViewMode] = useState<"list" | "timeline" | "garden">("garden");
   const [dragActive, setDragActive] = useState(false);
   const [detailViewImages, setDetailViewImages] = useState<{ [key: string]: string[] }>({});
   const [generatingImages, setGeneratingImages] = useState<{ [key: string]: boolean }>({});
   const [showDemoCards, setShowDemoCards] = useState(false);
+  const [simulateAllFlowers, setSimulateAllFlowers] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const detailCardRef = useRef<HTMLDivElement | null>(null);
 
@@ -1201,6 +1202,219 @@ Focus on people, objects, and environment that best represent this specific memo
     }
   };
 
+  /** Shared full memory detail card (images, add/generate, title, description, tags, date). Used in garden (floating + mobile full-screen) and list/timeline. */
+  const renderMemoryDetailCard = (memory: MemoryCardData) => (
+    <div
+      ref={detailCardRef}
+      className="flex-1 min-h-[380px] bg-emerald-50 rounded-[2rem] p-6 shadow-lg border-2 border-emerald-100 flex flex-col min-h-0"
+    >
+      {/* Image Section - min height so Add Media / Generate buttons always visible on mobile */}
+      <div className="flex-1 min-h-[220px] bg-green-100 rounded-xl flex items-center justify-center overflow-hidden mb-4">
+        {(() => {
+          const images = detailViewImages[memory.id] || [];
+          if (images.length > 0) {
+            return (
+              <div className="w-full h-full relative">
+                {images.length === 1 ? (
+                  <div className="w-full h-full relative group">
+                    <img
+                      src={images[0]}
+                      alt={memory.title}
+                      className="w-full h-full object-cover"
+                    />
+                    {!memory.id.startsWith("demo-") && !memory.id.startsWith("sim-") && (
+                      <>
+                        <button
+                          type="button"
+                          className="absolute top-2 right-2 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transform transition-all duration-300 opacity-0 group-hover:opacity-100 hover:scale-110"
+                          title="Remove image"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            let updatedImages: string[] = [];
+                            setDetailViewImages((prev) => {
+                              const current = prev[memory.id] || [];
+                              updatedImages = current.slice(1);
+                              if (typeof window !== "undefined") {
+                                const imageStorageKey = `memory_images_${memory.id}`;
+                                const stored = localStorage.getItem(imageStorageKey);
+                                if (stored) {
+                                  try {
+                                    const parsed = JSON.parse(stored);
+                                    const newStored = parsed.slice(1);
+                                    localStorage.setItem(imageStorageKey, JSON.stringify(newStored));
+                                  } catch {
+                                    /* ignore */
+                                  }
+                                }
+                              }
+                              return { ...prev, [memory.id]: updatedImages };
+                            });
+                            setMemoryCards((prev) =>
+                              prev.map((m) =>
+                                m.id === memory.id ? { ...m, mediaImages: updatedImages.slice(0, 3) } : m
+                              )
+                            );
+                            loadMemories();
+                          }}
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          className="absolute top-2 right-12 w-8 h-8 bg-blue-500 hover:bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transform transition-all duration-300 opacity-0 group-hover:opacity-100 hover:scale-110"
+                          title="Download image"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownloadImage(memory.id, 0);
+                          }}
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 4v12m0 0l-4-4m4 4l4-4" />
+                          </svg>
+                        </button>
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-1 w-full h-full p-1">
+                    {images.slice(0, 4).map((img, idx) => (
+                      <div key={idx} className="relative group">
+                        <img
+                          src={img}
+                          alt={`${memory.title} ${idx + 1}`}
+                          className="w-full h-full object-cover rounded-lg"
+                        />
+                        {!memory.id.startsWith("demo-") && !memory.id.startsWith("sim-") && (
+                          <>
+                            <button
+                              type="button"
+                              className="absolute top-2 right-2 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transform transition-all duration-300 opacity-0 group-hover:opacity-100 hover:scale-110"
+                              title="Remove image"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                let updatedImages: string[] = [];
+                                setDetailViewImages((prev) => {
+                                  const current = prev[memory.id] || [];
+                                  updatedImages = current.filter((_, i) => i !== idx);
+                                  if (typeof window !== "undefined") {
+                                    const imageStorageKey = `memory_images_${memory.id}`;
+                                    const stored = localStorage.getItem(imageStorageKey);
+                                    if (stored) {
+                                      try {
+                                        const parsed = JSON.parse(stored);
+                                        const newStored = parsed.filter((_: unknown, i: number) => i !== idx);
+                                        localStorage.setItem(imageStorageKey, JSON.stringify(newStored));
+                                      } catch {
+                                        /* ignore */
+                                      }
+                                    }
+                                  }
+                                  return { ...prev, [memory.id]: updatedImages };
+                                });
+                                setMemoryCards((prev) =>
+                                  prev.map((m) =>
+                                    m.id === memory.id ? { ...m, mediaImages: updatedImages.slice(0, 3) } : m
+                                  )
+                                );
+                                loadMemories();
+                              }}
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              className="absolute top-2 right-12 w-8 h-8 bg-blue-500 hover:bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transform transition-all duration-300 opacity-0 group-hover:opacity-100 hover:scale-110"
+                              title="Download image"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDownloadImage(memory.id, idx);
+                              }}
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 4v12m0 0l-4-4m4 4l4-4" />
+                              </svg>
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          }
+          return (
+            <div className="w-full h-full min-h-[220px] flex flex-col items-center justify-center gap-4 px-4 text-center">
+              <div className="space-y-2 flex-shrink-0">
+                <p className="text-sm text-gray-700 font-medium">
+                  {language === "en"
+                    ? "Add a photo or let AI paint this memory for you."
+                    : "可以自己加一張相，或者交畀 AI 幫你畫出呢段回憶。"}
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center justify-center gap-3 flex-shrink-0">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    fileInputRef.current?.click();
+                  }}
+                  className="inline-block px-6 py-3 bg-emerald-200 text-emerald-800 rounded-full text-sm font-medium hover:bg-emerald-300 transition-all duration-300 ease-in-out"
+                >
+                  {language === "en" ? "📎 Add Media" : "📎 新增媒體"}
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleGenerateImages(memory.id);
+                  }}
+                  disabled={!!generatingImages[memory.id]}
+                  className="inline-block px-6 py-3 bg-emerald-200 text-emerald-800 rounded-full text-sm font-medium hover:bg-emerald-300 transition-all duration-300 ease-in-out disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {language === "en"
+                    ? `🎨 ${generatingImages[memory.id] ? "Generating..." : "Generate Image"}`
+                    : `🎨 ${generatingImages[memory.id] ? "生成緊圖片⋯⋯" : "生成回憶圖片"}`}
+                </button>
+              </div>
+            </div>
+          );
+        })()}
+      </div>
+      <div className="flex flex-col flex-shrink-0">
+        <h3 className="text-xl font-semibold text-gray-800 mb-2">{memory.title}</h3>
+        <p className="text-sm text-gray-600 mb-3">{memory.description}</p>
+        {memory.hashtags && memory.hashtags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {Array.from(
+              new Set(
+                memory.hashtags.filter((tag) => {
+                  const hasLatin = /[A-Za-z]/.test(tag);
+                  const hasCJK = /[\u3400-\u9FFF]/.test(tag);
+                  return language === "en" ? hasLatin || !hasCJK : hasCJK || !hasLatin;
+                })
+              )
+            ).map((tag, index) => (
+              <span
+                key={index}
+                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800"
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
+        <div className="flex items-center justify-between text-xs text-gray-500">
+          <span>{memory.date}</span>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="h-screen bg-white flex flex-col overflow-hidden">
       {/* Header */}
@@ -1215,24 +1429,51 @@ Focus on people, objects, and environment that best represent this specific memo
 
       {/* Main Content */}
       <main className="flex-1 overflow-hidden pt-16">
-        <div className="h-full w-full px-8 py-8">
-          <div className="h-full w-full min-h-0">
-            <div className="grid lg:grid-cols-2 gap-12 h-full w-full min-h-0">
-              {/* Left Column - Memory Cards Grid / Timeline */}
-              <div className="flex flex-col h-full min-h-0">
-                <div className="mb-8">
-                  <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-                    {language === "en" ? "Your Memory Garden" : "你嘅記憶花園"}
-                  </h1>
-                  <p className="text-xl text-gray-600 leading-relaxed mb-6">
-                    {language === "en"
-                      ? "Browse your preserved memories, each one a story waiting to be revisited"
-                      : "喺呢度重溫你保存好嘅記憶，每一張卡都係一個值得再睇嘅故事。"}
-                  </p>
+        {/* Single file input for Add Media; applies to currently selected memory (garden or list/timeline) */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            if (selectedMemory) handleFileInputChange(selectedMemory, e);
+          }}
+          onClick={(e) => e.stopPropagation()}
+        />
+        <div className="h-full w-full px-4 sm:px-6 lg:px-8 py-4 lg:py-8">
+          <div className={`h-full w-full min-h-0 ${viewMode === "garden" ? "flex flex-col" : ""}`}>
+            <div className={viewMode === "garden" ? "flex flex-col flex-1 min-h-0 w-full" : "grid lg:grid-cols-2 gap-12 h-full w-full min-h-0"}>
+              {/* Left Column - Memory Cards Grid / Timeline (or full-width map in garden view) */}
+              <div className={`flex flex-col min-h-0 ${viewMode === "garden" ? "flex-1 w-full" : "h-full"}`}>
+                {/* Header: compact in garden (map) view, full in list/timeline */}
+                <div className={viewMode === "garden" ? "flex-shrink-0 flex flex-wrap items-center justify-between gap-3 py-2 mb-2" : "mb-8"}>
+                  <div className={viewMode === "garden" ? "flex items-center gap-3" : ""}>
+                    <h1 className={`font-bold text-gray-900 ${viewMode === "garden" ? "text-3xl sm:text-4xl md:text-5xl" : "text-4xl md:text-5xl mb-4"}`}>
+                      {language === "en" ? "Your Memory Garden" : "你嘅記憶花園"}
+                    </h1>
+                    {viewMode !== "garden" && (
+                      <p className="text-xl text-gray-600 leading-relaxed mb-6">
+                        {language === "en"
+                          ? "Browse your preserved memories, each one a story waiting to be revisited"
+                          : "喺呢度重溫你保存好嘅記憶，每一張卡都係一個值得再睇嘅故事。"}
+                      </p>
+                    )}
+                  </div>
 
                   <div className="flex flex-wrap items-center gap-3">
                   {/* View Mode Toggle */}
                   <div className="inline-flex rounded-full bg-white border border-gray-200 p-1">
+                    <button
+                      type="button"
+                      onClick={() => setViewMode("garden")}
+                      className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                        viewMode === "garden"
+                          ? "bg-gradient-to-b from-emerald-500 to-green-600 text-white shadow-md"
+                          : "text-gray-600 hover:text-emerald-600"
+                      }`}
+                    >
+                      {language === "en" ? "Garden" : "花園"}
+                    </button>
                     <button
                       type="button"
                       onClick={() => setViewMode("list")}
@@ -1242,7 +1483,7 @@ Focus on people, objects, and environment that best represent this specific memo
                           : "text-gray-600 hover:text-emerald-600"
                       }`}
                     >
-                        {language === "en" ? "List" : "列表"}
+                      {language === "en" ? "List" : "列表"}
                     </button>
                     <button
                       type="button"
@@ -1253,9 +1494,9 @@ Focus on people, objects, and environment that best represent this specific memo
                           : "text-gray-600 hover:text-emerald-600"
                       }`}
                     >
-                        {language === "en" ? "Timeline" : "時間線"}
-                      </button>
-                    </div>
+                      {language === "en" ? "Timeline" : "時間線"}
+                    </button>
+                  </div>
 
                     {/* Demo cards toggle (light green button like Mock Conversation) */}
                     <button
@@ -1274,9 +1515,150 @@ Focus on people, objects, and environment that best represent this specific memo
                   </div>
                 </div>
 
-                {/* Memory Views (scrollable) */}
-                <div className="flex-1 overflow-y-auto pr-2">
-                  {memoryCards.length === 0 ? (
+                {/* Memory Views (scrollable, or full map in garden view) */}
+                <div className={`flex-1 min-h-0 ${viewMode === "garden" ? "overflow-hidden flex items-center justify-center" : "overflow-y-auto pr-2"}`}>
+                  {viewMode === "garden" ? (
+                    /* Garden view: 2D interface simulating 3D (perspective tilt + depth); garden stays inside background */
+                    <div
+                      className="w-full h-full flex flex-col items-center justify-center overflow-hidden py-4 rounded-2xl"
+                      style={{
+                        perspective: "1400px",
+                        perspectiveOrigin: "center center",
+                        background: "linear-gradient(180deg, #bbf7d0 0%, #86efac 25%, #4ade80 50%, #22c55e 75%, #16a34a 100%)",
+                        boxShadow: "inset 0 0 80px rgba(0,0,0,0.06)",
+                      }}
+                    >
+                      <div
+                        className="rounded-2xl overflow-visible shrink-0 relative z-10"
+                        style={{
+                          width: "min(82vmin, 640px)",
+                          height: "min(82vmin, 640px)",
+                          background: "linear-gradient(165deg, #ecfdf5 0%, #d1fae5 40%, #a7f3d0 100%)",
+                          boxShadow: "inset 0 0 40px rgba(0,0,0,0.04), 0 30px 60px -20px rgba(5, 150, 105, 0.4), 0 20px 40px -25px rgba(0,0,0,0.25)",
+                          transform: "rotateX(24deg) scale(1.06)",
+                          transformStyle: "preserve-3d",
+                          transformOrigin: "center center",
+                          backfaceVisibility: "hidden",
+                        }}
+                      >
+                        <div
+                          className="grid gap-1.5 sm:gap-2 md:gap-3 p-1.5 sm:p-2 w-full h-full relative isolate"
+                          style={{
+                            gridTemplateColumns: "repeat(5, 1fr)",
+                            gridTemplateRows: "repeat(5, 1fr)",
+                            gridAutoFlow: "row",
+                            pointerEvents: "auto",
+                          }}
+                        >
+                        {(() => {
+                          // Center-first order: first memory in middle (index 12), then expand outward (applies to all cards including demo)
+                          const CENTER_FIRST_ORDER = [12, 7, 11, 13, 17, 6, 8, 16, 18, 1, 3, 5, 9, 15, 19, 21, 23, 0, 2, 4, 10, 14, 20, 22, 24];
+                          // Simulated flowers for testing: 25 placeholder cards so every cell has a flower
+                          const simulatedCards: MemoryCardData[] = simulateAllFlowers
+                            ? Array.from({ length: 25 }, (_, i) => ({
+                                id: `sim-${i}`,
+                                title: language === "en" ? `Simulated flower ${i + 1}` : `模擬花朵 ${i + 1}`,
+                                description: "",
+                                hashtags: [],
+                                media: [],
+                                mediaImages: [],
+                                date: "",
+                              }))
+                            : [];
+                          // For garden placement: demo cards fill from center first, then user cards (same center-first rule for demo)
+                          const gardenOrderedCards = simulateAllFlowers
+                            ? simulatedCards
+                            : [
+                                ...memoryCards.filter((m) => m.id.startsWith("demo-")),
+                                ...memoryCards.filter((m) => !m.id.startsWith("demo-")),
+                              ];
+                          return Array.from({ length: 25 }, (_, cellIndex) => {
+                            const memoryRank = CENTER_FIRST_ORDER.indexOf(cellIndex);
+                            const memory = gardenOrderedCards[memoryRank] ?? null;
+                            const isEmpty = !memory;
+                            const flowerColors = [
+                              { petal: "#10b981", center: "#059669" },
+                              { petal: "#f43f5e", center: "#e11d48" },
+                              { petal: "#f59e0b", center: "#d97706" },
+                              { petal: "#8b5cf6", center: "#7c3aed" },
+                              { petal: "#0ea5e9", center: "#0284c7" },
+                            ];
+                            const colors = flowerColors[memoryRank % flowerColors.length];
+                            return (
+                              <button
+                                key={cellIndex}
+                                type="button"
+                                onClick={() => memory && setSelectedMemory((prev) => (prev === memory.id ? null : memory.id))}
+                                className={`relative w-full h-full min-w-0 min-h-0 rounded-2xl flex items-center justify-center overflow-visible p-0.5 sm:p-1 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 aspect-square ${
+                                  memory
+                                    ? "bg-emerald-950/5 hover:bg-emerald-950/10 cursor-pointer"
+                                    : "bg-emerald-950/5 cursor-default"
+                                } ${selectedMemory === memory?.id ? "ring-2 ring-emerald-400 ring-offset-2 bg-emerald-950/10" : ""}`}
+                                style={{ transform: "translateZ(0)", pointerEvents: "auto" }}
+                                title={memory ? memory.title : undefined}
+                              >
+                                {isEmpty ? null : (
+                                  /* Flower: counter-rotated so it stays upright; scale up so flower looks larger */
+                                  <div
+                                    className="w-full h-full flex flex-col items-center justify-center"
+                                    style={{ transform: "rotateX(-24deg) scale(1.45)", transformStyle: "preserve-3d", transformOrigin: "center center" }}
+                                  >
+                                    <svg
+                                    viewBox="0 -14 48 105"
+                                    className="w-full h-full object-contain object-center flex-shrink-0"
+                                    aria-hidden
+                                  >
+                                    {/* viewBox height 105 so flower+stem center (y~38.5) is at viewBox center; optically centered in cell */}
+                                    <path
+                                      d="M24 22 L24 58"
+                                      stroke="#22c55e"
+                                      strokeWidth="2.5"
+                                      fill="none"
+                                      strokeLinecap="round"
+                                    />
+                                    {/* Left leaf */}
+                                    <ellipse cx="18" cy="42" rx="6" ry="3" fill="#22c55e" transform="rotate(-25 18 42)" />
+                                    {/* Right leaf */}
+                                    <ellipse cx="30" cy="50" rx="6" ry="3" fill="#16a34a" transform="rotate(25 30 50)" />
+                                    {/* Petals (5) - shifted down by 14 */}
+                                    {[0, 1, 2, 3, 4].map((i) => {
+                                      const a = (i / 5) * Math.PI * 2 - Math.PI / 2;
+                                      const r = 8;
+                                      const cx = 24 + Math.cos(a) * r;
+                                      const cy = 12 + 14 + Math.sin(a) * r;
+                                      const deg = (i / 5) * 360 - 90;
+                                      return (
+                                        <ellipse
+                                          key={i}
+                                          cx={cx}
+                                          cy={cy}
+                                          rx="5"
+                                          ry="7"
+                                          fill={colors.petal}
+                                          transform={`rotate(${deg} ${cx} ${cy})`}
+                                        />
+                                      );
+                                    })}
+                                    {/* Center */}
+                                    <circle cx="24" cy="26" r="4" fill={colors.center} />
+                                  </svg>
+                                  </div>
+                                )}
+                              </button>
+                            );
+                          });
+                        })()}
+                        </div>
+                      </div>
+                      {memoryCards.length > 25 && (
+                        <p className="text-sm text-gray-500 mt-4 text-center w-full relative z-0 pointer-events-none">
+                          {language === "en"
+                            ? `Showing 25 of ${memoryCards.length} memories`
+                            : `顯示 25 張，共 ${memoryCards.length} 張記憶`}
+                        </p>
+                      )}
+                    </div>
+                  ) : memoryCards.length === 0 ? (
                     <div className="flex items-center justify-center h-full">
                       <p className="text-gray-500 text-sm text-center px-4">
                         {language === "en"
@@ -1560,349 +1942,123 @@ Focus on people, objects, and environment that best represent this specific memo
                   )}
                 </div>
 
-                {/* One-column: action buttons below list */}
-                <div className="lg:hidden flex gap-4 mt-6 pb-4">
-                  <Link
-                    href="/memory-stacks"
-                    className="flex-1 text-center border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-6 py-4 rounded-full text-base font-semibold transition-all duration-300"
-                  >
-                    {language === "en" ? "Back" : "返回堆疊"}
-                  </Link>
-                  <Link
-                    href="/"
-                    className="flex-1 text-center bg-gradient-to-b from-emerald-500 to-green-600 text-white px-6 py-4 rounded-full text-base font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
-                  >
-                    {language === "en" ? "Back to Home" : "返回首頁"}
-                  </Link>
-                </div>
+                {/* One-column: action buttons below list (hidden in garden view - map is full) */}
+                {viewMode !== "garden" && (
+                  <div className="lg:hidden flex gap-4 mt-6 pb-4">
+                    <Link
+                      href="/memory-stacks"
+                      className="flex-1 text-center border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-6 py-4 rounded-full text-base font-semibold transition-all duration-300"
+                    >
+                      {language === "en" ? "Back" : "返回堆疊"}
+                    </Link>
+                    <Link
+                      href="/"
+                      className="flex-1 text-center bg-gradient-to-b from-emerald-500 to-green-600 text-white px-6 py-4 rounded-full text-base font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+                    >
+                      {language === "en" ? "Back to Home" : "返回首頁"}
+                    </Link>
+                  </div>
+                )}
               </div>
 
-              {/* Right Column - Memory Details; on one-column becomes full-screen overlay when a card is selected */}
-              <div
-                className={`flex flex-col min-h-0 ${
-                  selectedMemory
-                    ? "fixed inset-0 z-40 bg-white overflow-y-auto pt-16 pb-8 px-4 lg:static lg:z-auto lg:overflow-visible lg:pt-0 lg:pb-0 lg:px-0"
-                    : "hidden"
-                } lg:!flex lg:h-full`}
-              >
-                {/* One-column: back to list button */}
-                {selectedMemory && (
+              {/* Right Column - Memory Details; garden: mobile = full-screen overlay, desktop = floating card; list/timeline = side panel */}
+              {viewMode === "garden" && selectedMemory ? (() => {
+                const memory =
+                  memoryCards.find((m) => m.id === selectedMemory) ??
+                  (selectedMemory.startsWith("sim-")
+                    ? ({
+                        id: selectedMemory,
+                        title: language === "en" ? "Simulated flower (for testing)" : "模擬花朵（測試用）",
+                        description: language === "en" ? "Tap outside or Back to close." : "點外面或返回關閉。",
+                        hashtags: [],
+                        media: [],
+                        mediaImages: [],
+                        date: "",
+                      } as MemoryCardData)
+                    : null);
+                if (!memory) return null;
+                const backBtn = (
                   <button
                     type="button"
                     onClick={() => setSelectedMemory(null)}
-                    className="lg:hidden w-fit self-start inline-flex items-center justify-center gap-2 px-6 py-3 bg-emerald-100 text-emerald-700 rounded-full font-medium hover:bg-emerald-200 transition-all duration-300 ease-in-out mb-4"
+                    className="w-fit self-start inline-flex items-center justify-center gap-2 px-6 py-3 bg-emerald-100 text-emerald-700 rounded-full font-medium hover:bg-emerald-200 transition-all duration-300 ease-in-out mb-4"
                   >
                     <span aria-hidden>◀</span>
-                    {language === "en" ? "Back to list" : "返回列表"}
+                    {language === "en" ? "Back to Garden" : "返回花園"}
                   </button>
-                )}
-                {selectedMemory ? (
-                  <div className="flex-1 flex flex-col min-h-0 mb-6">
-                    {(() => {
-                      const memory = memoryCards.find(m => m.id === selectedMemory);
-                      if (!memory) return null;
-
-                      return (
-                        <div
-                          ref={detailCardRef}
-                          className="flex-1 min-h-[380px] bg-emerald-50 rounded-[2rem] p-6 shadow-lg border-2 border-emerald-100 flex flex-col min-h-0"
+                );
+                return (
+                  <>
+                    {/* Mobile: no top back; bottom "Back" = Back to Garden (close card); generous top padding so card isn't cropped */}
+                    <div
+                      className="lg:hidden fixed inset-0 z-40 bg-white overflow-y-auto px-4 pb-8 flex flex-col min-h-0 pt-[max(4rem,calc(env(safe-area-inset-top,0px)+2rem))]"
+                      role="dialog"
+                      aria-modal="true"
+                      aria-label={language === "en" ? "Memory card" : "記憶卡"}
+                    >
+                      <div className="flex-1 flex flex-col min-h-0 mb-6 pt-4">{renderMemoryDetailCard(memory)}</div>
+                      <div className="mt-auto flex gap-5">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedMemory(null)}
+                          className="flex-1 text-center border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-5 rounded-full text-lg font-semibold transition-all duration-300"
                         >
-                          {/* Image Section - min height so Add Media / Generate buttons always visible on mobile */}
-                          <div className="flex-1 min-h-[220px] bg-green-100 rounded-xl flex items-center justify-center overflow-hidden mb-4">
-                            {(() => {
-                              const images = detailViewImages[memory.id] || [];
-                              if (images.length > 0) {
-                                // Show first image or small grid if multiple
-                                return (
-                                  <div className="w-full h-full relative">
-                                    {images.length === 1 ? (
-                                      <div className="w-full h-full relative group">
-                                      <img
-                                        src={images[0]}
-                                        alt={memory.title}
-                                        className="w-full h-full object-cover"
-                                      />
-                                        {/* Remove + download buttons for single image (non-demo only) */}
-                                        {!memory.id.startsWith('demo-') && (
-                                          <>
-                                            <button
-                                              type="button"
-                                              className="absolute top-2 right-2 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transform transition-all duration-300 opacity-0 group-hover:opacity-100 hover:scale-110"
-                                              title="Remove image"
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                // Compute updated images once so we can sync detail view, storage, and cards
-                                                let updatedImages: string[] = [];
-                                                setDetailViewImages(prev => {
-                                                  const current = prev[memory.id] || [];
-                                                  updatedImages = current.slice(1); // remove index 0
-                                                  if (typeof window !== "undefined") {
-                                                    const imageStorageKey = `memory_images_${memory.id}`;
-                                                    const stored = localStorage.getItem(imageStorageKey);
-                                                    if (stored) {
-                                                      try {
-                                                        const parsed = JSON.parse(stored);
-                                                        const newStored = parsed.slice(1);
-                                                        localStorage.setItem(imageStorageKey, JSON.stringify(newStored));
-                                                      } catch {
-                                                        // ignore parse errors
-                                                      }
-                                                    }
-                                                  }
-                                                  return {
-                                                    ...prev,
-                                                    [memory.id]: updatedImages,
-                                                  };
-                                                });
-                                                // Also update the card preview immediately
-                                                setMemoryCards(prev =>
-                                                  prev.map(m =>
-                                                    m.id === memory.id
-                                                      ? {
-                                                          ...m,
-                                                          mediaImages: updatedImages.slice(0, 3),
-                                                        }
-                                                      : m
-                                                  )
-                                                );
-                                                // Reload from storage to ensure everything stays in sync
-                                                loadMemories();
-                                              }}
-                                            >
-                                              <svg
-                                                className="w-4 h-4"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24"
-                                              >
-                                                <path
-                                                  strokeLinecap="round"
-                                                  strokeLinejoin="round"
-                                                  strokeWidth={2}
-                                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                                />
-                                              </svg>
-                                            </button>
-                                            <button
-                                              type="button"
-                                              className="absolute top-2 right-12 w-8 h-8 bg-blue-500 hover:bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transform transition-all duration-300 opacity-0 group-hover:opacity-100 hover:scale-110"
-                                              title="Download image"
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleDownloadImage(memory.id, 0);
-                                              }}
-                                            >
-                                              <svg
-                                                className="w-4 h-4"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24"
-                                              >
-                                                <path
-                                                  strokeLinecap="round"
-                                                  strokeLinejoin="round"
-                                                  strokeWidth={2}
-                                                  d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 4v12m0 0l-4-4m4 4l4-4"
-                                                />
-                                              </svg>
-                                            </button>
-                                          </>
-                                        )}
-                                      </div>
-                                    ) : (
-                                      <div className="grid grid-cols-2 gap-1 w-full h-full p-1">
-                                        {images.slice(0, 4).map((img, idx) => (
-                                          <div key={idx} className="relative group">
-                                          <img
-                                            src={img}
-                                            alt={`${memory.title} ${idx + 1}`}
-                                            className="w-full h-full object-cover rounded-lg"
-                                          />
-                                            {/* Remove & download buttons (only for non-demo cards) */}
-                                            {!memory.id.startsWith('demo-') && (
-                                              <>
-                                                <button
-                                                  type="button"
-                                                  className="absolute top-2 right-2 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transform transition-all duration-300 opacity-0 group-hover:opacity-100 hover:scale-110"
-                                                  title="Remove image"
-                                                  onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    // Remove this image from state and localStorage
-                                                    let updatedImages: string[] = [];
-                                                    setDetailViewImages(prev => {
-                                                      const current = prev[memory.id] || [];
-                                                      updatedImages = current.filter((_, i) => i !== idx);
-                                                      if (typeof window !== "undefined") {
-                                                        const imageStorageKey = `memory_images_${memory.id}`;
-                                                        const stored = localStorage.getItem(imageStorageKey);
-                                                        if (stored) {
-                                                          try {
-                                                            const parsed = JSON.parse(stored);
-                                                            const newStored = parsed.filter((_: any, i: number) => i !== idx);
-                                                            localStorage.setItem(imageStorageKey, JSON.stringify(newStored));
-                                                          } catch {
-                                                            // ignore parse errors
-                                                          }
-                                                        }
-                                                      }
-                                                      return {
-                                                        ...prev,
-                                                        [memory.id]: updatedImages,
-                                                      };
-                                                    });
-                                                    // Update card thumbnails immediately
-                                                    setMemoryCards(prev =>
-                                                      prev.map(m =>
-                                                        m.id === memory.id
-                                                          ? {
-                                                              ...m,
-                                                              mediaImages: updatedImages.slice(0, 3),
-                                                            }
-                                                          : m
-                                                      )
-                                                    );
-                                                    // Reload cards to keep everything synced with storage
-                                                    loadMemories();
-                                                  }}
-                                                >
-                                                  <svg
-                                                    className="w-4 h-4"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    viewBox="0 0 24 24"
-                                                  >
-                                                    <path
-                                                      strokeLinecap="round"
-                                                      strokeLinejoin="round"
-                                                      strokeWidth={2}
-                                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                                    />
-                                                  </svg>
-                                                </button>
-                                                <button
-                                                  type="button"
-                                                  className="absolute top-2 right-12 w-8 h-8 bg-blue-500 hover:bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transform transition-all duration-300 opacity-0 group-hover:opacity-100 hover:scale-110"
-                                                  title="Download image"
-                                                  onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleDownloadImage(memory.id, idx);
-                                                  }}
-                                                >
-                                                  <svg
-                                                    className="w-4 h-4"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    viewBox="0 0 24 24"
-                                                  >
-                                                    <path
-                                                      strokeLinecap="round"
-                                                      strokeLinejoin="round"
-                                                      strokeWidth={2}
-                                                      d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 4v12m0 0l-4-4m4 4l4-4"
-                                                    />
-                                                  </svg>
-                                                </button>
-                                              </>
-                                            )}
-                                          </div>
-                                        ))}
-                                      </div>
-                                    )}
-                                  </div>
-                                );
-                              } else {
-                                // No images yet: show Style 4-inspired Add Media + Generate Image buttons inside the green area
-                                return (
-                                  <div className="w-full h-full min-h-[220px] flex flex-col items-center justify-center gap-4 px-4 text-center">
-                                    <div className="space-y-2 flex-shrink-0">
-                                      <p className="text-sm text-gray-700 font-medium">
-                                        {language === "en"
-                                          ? "Add a photo or let AI paint this memory for you."
-                                          : "可以自己加一張相，或者交畀 AI 幫你畫出呢段回憶。"}
-                                      </p>
-                                    </div>
-                                    <div className="flex flex-wrap items-center justify-center gap-3 flex-shrink-0">
-                                      {/* Add Media (opens file picker) */}
-                                      <button
-                                        type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      fileInputRef.current?.click();
-                                    }}
-                                        className="inline-block px-6 py-3 bg-emerald-200 text-emerald-800 rounded-full text-sm font-medium hover:bg-emerald-300 transition-all duration-300 ease-in-out"
-                                  >
-                                        {language === "en" ? "📎 Add Media" : "📎 新增媒體"}
-                                      </button>
-                                    <input
-                                      ref={fileInputRef}
-                                      type="file"
-                                      accept="image/*"
-                                      className="hidden"
-                                      onChange={(e) => handleFileInputChange(memory.id, e)}
-                                      onClick={(e) => e.stopPropagation()}
-                                    />
-
-                                      {/* Generate Image (calls Imagen 4 via API) */}
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleGenerateImages(memory.id);
-                                        }}
-                                        disabled={!!generatingImages[memory.id]}
-                                        className="inline-block px-6 py-3 bg-emerald-200 text-emerald-800 rounded-full text-sm font-medium hover:bg-emerald-300 transition-all duration-300 ease-in-out disabled:opacity-60 disabled:cursor-not-allowed"
-                                      >
-                                        {language === "en"
-                                          ? `🎨 ${generatingImages[memory.id] ? "Generating..." : "Generate Image"}`
-                                          : `🎨 ${
-                                              generatingImages[memory.id]
-                                                ? "生成緊圖片⋯⋯"
-                                                : "生成回憶圖片"
-                                            }`}
-                                      </button>
-                                    </div>
-                                  </div>
-                                );
-                              }
-                            })()}
-                          </div>
-
-                          {/* Card Content - match garden card typography/layout */}
-                          <div className="flex flex-col flex-shrink-0">
-                            <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                              {memory.title}
-                            </h3>
-                            <p className="text-sm text-gray-600 mb-3">
-                              {memory.description}
-                            </p>
-                            {/* Tags */}
-                            {memory.hashtags && memory.hashtags.length > 0 && (
-                              <div className="flex flex-wrap gap-2 mb-3">
-                                {Array.from(
-                                  new Set(
-                                    memory.hashtags.filter((tag) => {
-                                      const hasLatin = /[A-Za-z]/.test(tag);
-                                      const hasCJK = /[\u3400-\u9FFF]/.test(tag);
-                                      return language === "en" ? hasLatin || !hasCJK : hasCJK || !hasLatin;
-                                    })
-                                  )
-                                ).map((tag, index) => (
-                                  <span
-                                    key={index}
-                                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800"
-                                  >
-                                    #{tag}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
-                            <div className="flex items-center justify-between text-xs text-gray-500">
-                              <span>{memory.date}</span>
-                              {/* We don't have categories here, so we omit the pill for now */}
-                            </div>
-                          </div>
-                        </div>
-                      );
+                          {language === "en" ? "Back to Garden" : "返回花園"}
+                        </button>
+                        <Link
+                          href="/"
+                          className="flex-1 text-center bg-gradient-to-b from-emerald-500 to-green-600 text-white px-8 py-5 rounded-full text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+                        >
+                          {language === "en" ? "Back to Home" : "返回首頁"}
+                        </Link>
+                      </div>
+                    </div>
+                    {/* Desktop: floating card with backdrop (like nav AI popup) */}
+                    <div className="hidden lg:block" aria-hidden={true}>
+                      <div
+                        className="fixed inset-0 z-40 bg-black/25 backdrop-blur-[2px] animate-slide-down"
+                        onClick={() => setSelectedMemory(null)}
+                        aria-hidden
+                      />
+                      <div
+                        className="fixed left-1/2 top-20 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md max-h-[calc(100vh-6rem)] overflow-y-auto rounded-[2rem] shadow-2xl border-2 border-emerald-100 bg-white p-6 animate-slide-down"
+                        onClick={(e) => e.stopPropagation()}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label={language === "en" ? "Memory card" : "記憶卡"}
+                      >
+                        {backBtn}
+                        {renderMemoryDetailCard(memory)}
+                      </div>
+                    </div>
+                  </>
+                );
+              })() : viewMode !== "garden" ? (
+              <div
+                className={`flex flex-col min-h-0 ${
+                  selectedMemory
+                    ? "fixed inset-0 z-40 bg-white overflow-y-auto pb-8 px-4 lg:static lg:z-auto lg:overflow-visible lg:pt-0 lg:pb-0 lg:px-0 pt-[max(4rem,calc(env(safe-area-inset-top,0px)+2rem))] lg:pt-0"
+                    : "hidden"
+                } lg:!flex lg:h-full`}
+              >
+                {selectedMemory ? (
+                  <div className="flex-1 flex flex-col min-h-0 mb-6 pt-4 lg:pt-0">
+                    {(() => {
+                      const memory =
+                        memoryCards.find((m) => m.id === selectedMemory) ??
+                        (selectedMemory.startsWith("sim-")
+                          ? ({
+                              id: selectedMemory,
+                              title: language === "en" ? "Simulated flower (for testing)" : "模擬花朵（測試用）",
+                              description: language === "en" ? "Tap outside or Back to close." : "點外面或返回關閉。",
+                              hashtags: [],
+                              media: [],
+                              mediaImages: [],
+                              date: "",
+                            } as MemoryCardData)
+                          : null);
+                      if (!memory) return null;
+                      return renderMemoryDetailCard(memory);
                     })()}
                   </div>
                 ) : (
@@ -1921,11 +2077,18 @@ Focus on people, objects, and environment that best represent this specific memo
                   </div>
                 )}
 
-                {/* Action Buttons - Pushed to bottom */}
+                {/* Action Buttons - Pushed to bottom; on mobile first = close card (Back to list), on desktop = Back to stacks */}
                 <div className="mt-auto flex gap-5">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedMemory(null)}
+                    className="lg:hidden flex-1 text-center border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-5 rounded-full text-lg font-semibold transition-all duration-300"
+                  >
+                    {language === "en" ? "Back to list" : "返回列表"}
+                  </button>
                   <Link
                     href="/memory-stacks"
-                    className="flex-1 text-center border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-5 rounded-full text-lg font-semibold transition-all duration-300"
+                    className="hidden lg:block flex-1 text-center border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-5 rounded-full text-lg font-semibold transition-all duration-300"
                   >
                     {language === "en" ? "Back" : "返回堆疊"}
                   </Link>
@@ -1937,6 +2100,7 @@ Focus on people, objects, and environment that best represent this specific memo
                   </Link>
                 </div>
               </div>
+              ) : null}
             </div>
           </div>
         </div>

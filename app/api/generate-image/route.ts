@@ -181,7 +181,17 @@ export async function POST(request: NextRequest) {
         result = polled;
       }
 
-      if (result.status !== 'succeeded' || !result.output) {
+      if (result.status === 'failed' || result.status === 'canceled') {
+        const logsStr = typeof result.logs === 'string' ? result.logs.trim().slice(-400) : Array.isArray(result.logs) ? result.logs.slice(-1)[0] : '';
+        const msg = result.error || logsStr || `Prediction ${result.status}`;
+        console.error('Replicate prediction failed:', result);
+        return NextResponse.json(
+          { success: false, error: msg },
+          { status: 500 }
+        );
+      }
+
+      if (result.status !== 'succeeded' || result.output == null) {
         console.error('Replicate prediction did not succeed:', result);
         return NextResponse.json(
           { success: false, error: 'No image URL returned from Replicate' },
@@ -189,12 +199,20 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // result.output is either a URL string or an array of URLs
+      // result.output can be: URL string, array of URLs, or array of objects with .url (FileOutput-like)
       let imageUrl: string | null = null;
-      if (Array.isArray(result.output) && typeof result.output[0] === 'string') {
-        imageUrl = result.output[0] as string;
-      } else if (typeof result.output === 'string') {
-        imageUrl = result.output as string;
+      const out = result.output;
+      if (typeof out === 'string' && out.startsWith('http')) {
+        imageUrl = out;
+      } else if (Array.isArray(out) && out.length > 0) {
+        const first = out[0];
+        if (typeof first === 'string' && first.startsWith('http')) {
+          imageUrl = first;
+        } else if (first && typeof first === 'object' && typeof (first as { url?: string }).url === 'string') {
+          imageUrl = (first as { url: string }).url;
+        }
+      } else if (out && typeof out === 'object' && typeof (out as { url?: string }).url === 'string') {
+        imageUrl = (out as { url: string }).url;
       }
 
       if (!imageUrl) {

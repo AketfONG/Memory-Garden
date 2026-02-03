@@ -56,13 +56,13 @@ export default function Home() {
                 </p>
                 <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
                   <Link 
-                    href="/get-started" 
+                    href="/story-summary-intro" 
                     className="inline-block bg-gradient-to-b from-emerald-500 to-green-600 text-white px-10 py-4 rounded-full text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
                   >
                     {language === "en" ? "Story Summary Card" : "故事摘要卡"}
                   </Link>
                   <Link
-                    href="/memory-conversation?type=new"
+                    href="/ai-journal-intro"
                     className="inline-block bg-gradient-to-b from-blue-500 to-indigo-600 text-white px-10 py-4 rounded-full text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
                   >
                     {language === "en" ? "AI Journal" : "AI 日記"}
@@ -349,7 +349,7 @@ export default function Home() {
                   </div>
                   <div className="mt-8 flex items-center justify-center">
                     <Link
-                      href="/get-started"
+                      href="/story-summary-intro"
                       className="inline-block bg-gradient-to-b from-emerald-500 to-green-600 text-white px-10 py-4 rounded-full text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
                     >
                       {language === "en" ? "Try Story Summary Card" : "試用故事摘要卡"}
@@ -358,7 +358,7 @@ export default function Home() {
                 </div>
               </div>
               
-              {/* For Teens */}
+              {/* For Teens / AI Journal */}
               <div>
                 <h3 className="text-2xl font-semibold text-gray-900 mb-8 text-center">
                   {language === "en" ? "For teens" : "俾青少年用"}
@@ -369,45 +369,45 @@ export default function Home() {
                     <div className="flex items-center mb-4">
                       <div className="bg-gradient-to-b from-indigo-500 to-indigo-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg mr-4 shadow-lg">1</div>
                       <h4 className="text-xl font-semibold text-gray-900">
-                        {language === "en" ? "Get inspired" : "搵靈感"}
+                        {language === "en" ? "Chat with AI" : "同 AI 傾計"}
                       </h4>
                     </div>
                     <p className="text-gray-600 ml-14">
                       {language === "en"
-                        ? "Choose prompts that bring your story to life, and we'll keep you motivated with gentle reminders."
-                        : "揀啲提問同主題，幫你諗起屬於你嘅故事，我哋會用溫柔提示陪你慢慢寫。"}
+                        ? "Share your thoughts, memories, or stories in a conversation with AI."
+                        : "喺對話入面同 AI 分享你嘅想法、回憶或故事。"}
                     </p>
                   </div>
                   <div>
                     <div className="flex items-center mb-4">
                       <div className="bg-gradient-to-b from-indigo-500 to-indigo-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg mr-4 shadow-lg">2</div>
                       <h4 className="text-xl font-semibold text-gray-900">
-                        {language === "en" ? "Write or record stories" : "寫低或者錄低故事"}
+                        {language === "en" ? "Get a summary" : "得到摘要"}
                       </h4>
                     </div>
                     <p className="text-gray-600 ml-14">
                       {language === "en"
-                        ? "You can share in the way that's best for you: chat with AI, record your voice, or add photos and videos."
-                        : "可以打字、同AI傾計、錄聲，或者加相加片，用最啱你嘅方式表達自己。"}
+                        ? "AI turns your chat into a clear summary you can keep or revisit."
+                        : "AI 會將你嘅對話整理成清晰摘要，方便你保存或重溫。"}
                     </p>
                   </div>
                   <div>
                     <div className="flex items-center mb-4">
                       <div className="bg-gradient-to-b from-indigo-500 to-indigo-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg mr-4 shadow-lg">3</div>
                       <h4 className="text-xl font-semibold text-gray-900">
-                        {language === "en" ? "Build your timeline" : "砌出自己嘅成長時間線"}
+                        {language === "en" ? "Keep or revisit" : "保存或重溫"}
                       </h4>
                     </div>
                     <p className="text-gray-600 ml-14">
                       {language === "en"
-                        ? "After recording your memories, you can see your stories preserved in a beautiful timeline to share and pass down."
-                        : "記錄完之後，你會見到自己一條靚靚時間線，可以同信任嘅人分享，或者留俾未來嘅自己。"}
+                        ? "Save your summary to your garden or come back anytime to read and reflect."
+                        : "將摘要保存到記憶花園，或者隨時返嚟重溫同反思。"}
                     </p>
                   </div>
                   </div>
                   <div className="mt-8 flex items-center justify-center">
                     <Link
-                      href="/memory-conversation?type=new"
+                      href="/ai-journal-intro"
                       className="inline-block bg-gradient-to-b from-blue-500 to-indigo-600 text-white px-10 py-4 rounded-full text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
                     >
                       {language === "en" ? "Try AI Journal" : "試用 AI 日記"}
@@ -828,13 +828,13 @@ The more stories they shared, the more connected they felt. That's an experience
             </p>
             <div className="flex flex-col sm:flex-row items-center gap-4 justify-center">
               <Link 
-                href="/get-started" 
+                href="/story-summary-intro" 
                 className="inline-block bg-gradient-to-b from-emerald-500 to-green-600 text-white px-10 py-4 rounded-full text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
               >
                 {language === "en" ? "Story Summary Card" : "故事摘要卡"}
               </Link>
               <Link
-                href="/memory-conversation?type=new"
+                href="/ai-journal-intro"
                 className="inline-block bg-gradient-to-b from-blue-500 to-indigo-600 text-white px-10 py-4 rounded-full text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
               >
                 {language === "en" ? "AI Journal" : "AI 日記"}

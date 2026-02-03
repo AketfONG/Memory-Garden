@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Navigation from "../components/Navigation";
+import FloatingProgressBar from "../components/FloatingProgressBar";
 import Link from "next/link";
 import { stackStorage, type MemoryStack as StackData } from "../utils/stackStorage";
 import { PRESET_STACKS } from "../utils/presetStacks";
@@ -180,7 +181,7 @@ export default function MemoryStacks() {
   };
 
   const handleNewMemory = () => {
-    window.location.href = `/memory-conversation?type=new`;
+    window.location.href = `/memory-conversation?type=new&flow=story-summary`;
   };
 
   const handleDeleteStack = (stackId: string) => {
@@ -211,6 +212,8 @@ export default function MemoryStacks() {
             href: "/",
             variant: "secondary",
           }}
+          progressFlow="story-summary"
+          progressStep={1}
         />
         <main className="flex-1 overflow-hidden pt-16 flex items-center justify-center">
           <div className="text-center">
@@ -235,7 +238,13 @@ export default function MemoryStacks() {
           href: "/",
           variant: "secondary",
         }}
+        progressFlow="story-summary"
+        progressStep={1}
       />
+
+      <div className="lg:hidden">
+        <FloatingProgressBar flow="story-summary" currentStep={1} />
+      </div>
 
       {/* Main Content */}
       <main className="flex-1 min-h-0 pt-16 overflow-y-auto" data-nav-scroll-root>

@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { useLanguage } from "../contexts/LanguageContext";
 import { translations } from "../translations";
 
+export type ProgressFlow = "story-summary" | "ai-journal";
+
 interface NavigationProps {
   showBackButton?: boolean;
   backButtonText?: string;
@@ -16,6 +18,9 @@ interface NavigationProps {
     href: string;
     variant?: "primary" | "secondary";
   };
+  /** When set, show progress checkpoints in the nav bar (desktop only) */
+  progressFlow?: ProgressFlow;
+  progressStep?: number; // 0-based
 }
 
 interface PopupMessage {
@@ -30,12 +35,17 @@ const NAV_CHAT_ENABLED = false;
 
 export default function Navigation({ 
   showBackButton = false, 
-  backButtonText = "Back to Home",
+  backButtonText = "Back",
   backButtonHref = "/",
   showStartGrowing = false,
   fullWidth = false,
-  primaryAction
+  primaryAction,
+  progressFlow,
+  progressStep = 0
 }: NavigationProps) {
+  const STORY_STEPS = ["1", "2", "3", "✓"];
+  const AI_STEPS = ["1", "✓"];
+  const progressSteps = progressFlow === "story-summary" ? STORY_STEPS : progressFlow === "ai-journal" ? AI_STEPS : null;
   const pathname = usePathname();
   const { language, setLanguage } = useLanguage();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -321,9 +331,38 @@ export default function Navigation({
           )}
         </div>
         
-        <div className="flex items-center space-x-8">
+        <div className="flex items-center space-x-6">
+          {progressSteps != null && (
+            <div className="hidden lg:flex items-center gap-1" aria-label="Progress">
+              {progressSteps.map((label, index) => {
+                const isCompleted = index < progressStep;
+                const isCurrent = index === progressStep;
+                const isLast = index === progressSteps.length - 1;
+                const isActive = isCompleted || isCurrent;
+                return (
+                  <React.Fragment key={index}>
+                    <div
+                      className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold transition-all duration-300 ${
+                        isActive ? "bg-gradient-to-b from-emerald-500 to-green-600 text-white shadow" : "bg-gray-200 text-gray-500"
+                      }`}
+                      aria-current={isCurrent ? "step" : undefined}
+                    >
+                      {isCompleted ? <span className="text-white">✓</span> : <span>{label}</span>}
+                    </div>
+                    {!isLast && (
+                      <div
+                        className={`w-6 h-0.5 rounded ${
+                          index < progressStep ? "bg-gradient-to-r from-emerald-500 to-green-600" : "bg-gray-200"
+                        }`}
+                      />
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </div>
+          )}
           <Link href="/updates" className="md:hidden text-gray-600 hover:text-emerald-600 transition-all duration-200 ease-in-out font-medium">
-            v1.0.1
+            v1.1
           </Link>
           <button
             onClick={handleLangSwitch}
@@ -358,7 +397,7 @@ export default function Navigation({
         
         <div className="hidden md:flex items-center space-x-8">
           <Link href="/updates" className="text-gray-600 hover:text-emerald-600 transition-all duration-200 ease-in-out font-medium">
-            v1.0.1
+            v1.1
           </Link>
           <button
             onClick={handleLangSwitch}
@@ -390,7 +429,7 @@ export default function Navigation({
           )}
           {showBackButton && (
             <Link href={backButtonHref} className="border-2 border-emerald-200 text-emerald-600 hover:bg-emerald-50 px-6 py-2 rounded-full transition-all duration-300 hover:border-emerald-300 hover:scale-105 font-medium">
-              {translations[language].navigation.backToHome}
+              {backButtonText}
             </Link>
           )}
         </div>
@@ -426,7 +465,7 @@ export default function Navigation({
             )}
             {showBackButton && (
               <Link href={backButtonHref} className="border-2 border-emerald-200 text-emerald-600 hover:bg-emerald-50 px-6 py-2 rounded-full transition-all duration-300 hover:border-emerald-300 hover:scale-105 font-medium" onClick={()=>setMobileOpen(false)}>
-                {translations[language].navigation.backToHome}
+                {backButtonText}
               </Link>
             )}
           </div>
